@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
+  "engines": {
+    "node": "^10.12"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "mocha --exit && eslint . --cache && depcheck --ignores=\"prettier\"",
+    "format": "prettier **/*.js --write && eslint . --fix"
+  },
   "dependencies": {
     "bugsnag": "^2.3.1",
     "exp-amqp-connection": "BonnierNews/exp-amqp-connection#v2.9.0",
@@ -16,10 +24,12 @@
     "depcheck": "^0.6.9",
     "eslint": "^4.19.1",
     "eslint-plugin-prettier": "^3.0.1",
+    "exp-fake-amqplib": "BonnierNews/exp-fake-amqplib#v3.0.1",
     "mocha": "^5.2.0",
     "mocha-cakes-2": "^3.3.0",
     "mock-require": "^3.0.2",
     "prettier": "^1.16.4",
+    "proxyquire": "^1.8.0",
     "supertest": "^3.3.0"
   }
 }
