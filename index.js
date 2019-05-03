@@ -5,14 +5,16 @@ const broker = require("./broker");
 const bugsnag = require("bugsnag");
 const retryMessage = require("./retry-message");
 const rejectMessage = require("./reject-message");
+const recipeRepo = require("./lib/recipe-repo");
 const queueName = "hard-coded"; //TODO: fixme
 const noOp = () => {};
 const buildContext = require("./context");
 
+let recipeMap;
 let mappings;
 function start({recipes, lambdas, callback}) {
+  recipeMap = recipeRepo.init(recipes);
   mappings = lambdas;
-  //return await util.promisify(broker.subscribe)(Object.keys(lambdas), queueName, handleMessage);
   broker.subscribe(Object.keys(mappings), queueName, handleMessageWrapper, callback || noOp);
 }
 
@@ -47,13 +49,20 @@ async function handleMessage(message, meta, notify) {
     );
     const responseMessage = await handlerFunction(message, context);
     if (responseMessage) {
+      const responseKey = getResponseKey(message, meta, context.routingKey);
+      if (!responseKey) {
+        logger.info("Message processed, acking");
+      } else {
+        await publish(responseKey, message, context);
+      }
+
       // TODO: this is not correct
-      const messages = Array.isArray(responseMessage) ? responseMessage : [responseMessage];
-      await Promise.all(
-        messages.map(async (msg) => {
-          await publish(getResponseKey(msg, meta, context.routingKey), msg, context);
-        })
-      );
+      // const messages = Array.isArray(responseMessage) ? responseMessage : [responseMessage];
+      // await Promise.all(
+      //   messages.map(async (msg) => {
+      //     await publish(getResponseKey(msg, meta, context.routingKey), msg, context);
+      //   })
+      // );
     }
     return notify.ack();
   } catch (err) {
@@ -66,9 +75,10 @@ async function handleMessage(message, meta, notify) {
 }
 
 function getResponseKey(msg, meta, routingKey) {
-  if (routingKey.endsWith(".unrecoverable")) return `${routingKey}.processed`;
-  if (msg.error) return `${routingKey}.unrecoverable`;
-  return meta.properties.replyTo;
+  // if (routingKey.endsWith(".unrecoverable")) return `${routingKey}.processed`;
+  // if (msg.error) return `${routingKey}.unrecoverable`;
+  // return meta.properties.replyTo;
+  return recipeMap.next(routingKey).routingKey;
 }
 
 function publish(responseKey, message, context) {
@@ -86,7 +96,7 @@ function publish(responseKey, message, context) {
 function decorateMessage(message, context) {
   if (message.data) {
     const lastData = message.data[message.data.length - 1];
-    if (!lastData.key) {
+    if (lastData && !lastData.key) {
       lastData.key = context.routingKey;
     }
   }
@@ -97,7 +107,7 @@ function decorateMessage(message, context) {
 }
 
 function isEmptyMessage(message) {
-  return !message || (!message.data && !message.attributes);
+  return !message || (!message.data && !message.attributes && !message.source);
 }
 
 module.exports = {start};

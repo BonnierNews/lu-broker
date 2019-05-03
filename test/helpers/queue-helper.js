@@ -67,7 +67,7 @@ async function publishAndConsumeReply(routingKey, msg, expectedReply) {
   const replyTo = `reply.${uuid.v4()}`;
   expectedReply = expectedReply || replyTo;
   const errorKey = `${routingKey}.error`;
-  const localMessages = subscribe([replyTo, errorKey]);
+  const localMessages = subscribe([expectedReply, errorKey]);
   await publishWithMeta(routingKey, msg, {replyTo});
   localMessages.length.should.eql(1);
   localMessages[0].key.should.eql(expectedReply);
