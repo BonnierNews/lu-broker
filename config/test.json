@@ -1,0 +1,18 @@
+
+{
+  "logging": {
+    "log": "file",
+    "logLevel": "debug",
+    "logJson": false,
+    "truncateLog": true
+  },
+  "HOSTNAME": "test-pod",
+  "rabbit": {
+    "url": "amqp://localhost",
+    "apiUrl": "http://guest:guest@localhost:15672",
+    "exchange": "CRDExchangeTest",
+    "queueArguments": {
+      "x-dead-letter-exchange": "RetryExchangeTest"
+    }
+  }
+}

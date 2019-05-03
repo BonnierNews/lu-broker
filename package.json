@@ -2,5 +2,24 @@
   "name": "lu-broker",
   "version": "1.0.0",
   "description": "A broker and mediator for lu-projects",
-  "main": "index.js"
+  "main": "index.js",
+  "dependencies": {
+    "bugsnag": "^2.3.1",
+    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#v2.9.0",
+    "exp-config": "^2.0.1",
+    "lu-logger": "github:BonnierNews/lu-logger#v2.1.5",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-exclude": "^1.0.12",
+    "depcheck": "^0.6.9",
+    "eslint": "^4.19.1",
+    "eslint-plugin-prettier": "^3.0.1",
+    "mocha": "^5.2.0",
+    "mocha-cakes-2": "^3.3.0",
+    "mock-require": "^3.0.2",
+    "prettier": "^1.16.4",
+    "supertest": "^3.3.0"
+  }
 }
