@@ -65,10 +65,16 @@ function awaitMessage(messageId, cb) {
 
 async function publishAndConsumeReply(routingKey, msg, expectedReply) {
   const replyTo = `reply.${uuid.v4()}`;
+  const [name, namespace] = routingKey.split(".");
   expectedReply = expectedReply || replyTo;
   const errorKey = `${routingKey}.error`;
   const localMessages = subscribe([expectedReply, errorKey]);
-  await publishWithMeta(routingKey, msg, {replyTo});
+  await publishWithMeta(routingKey, msg, {
+    replyTo,
+    headers: {
+      eventName: `${name}.${namespace}`
+    }
+  });
   localMessages.length.should.eql(1);
   localMessages[0].key.should.eql(expectedReply);
   return localMessages;

@@ -1,6 +1,7 @@
 "use strict";
 
 const config = require("exp-config");
+const uuid = require("uuid");
 const broker = require("./broker");
 const bugsnag = require("bugsnag");
 const retryMessage = require("./retry-message");
@@ -53,16 +54,8 @@ async function handleMessage(message, meta, notify) {
       if (!responseKey) {
         logger.info("Message processed, acking");
       } else {
-        await publish(responseKey, message, context);
+        await publish(responseKey, decorateMessage(message, context), meta, context);
       }
-
-      // TODO: this is not correct
-      // const messages = Array.isArray(responseMessage) ? responseMessage : [responseMessage];
-      // await Promise.all(
-      //   messages.map(async (msg) => {
-      //     await publish(getResponseKey(msg, meta, context.routingKey), msg, context);
-      //   })
-      // );
     }
     return notify.ack();
   } catch (err) {
@@ -78,22 +71,26 @@ function getResponseKey(msg, meta, routingKey) {
   // if (routingKey.endsWith(".unrecoverable")) return `${routingKey}.processed`;
   // if (msg.error) return `${routingKey}.unrecoverable`;
   // return meta.properties.replyTo;
-  return recipeMap.next(routingKey).routingKey;
+  const eventName = meta && meta.properties && meta.properties.headers && meta.properties.headers.eventName;
+  if (!eventName) {
+    throw new Error(`Invalid headers ${JSON.stringify(meta)}`);
+  }
+  const [namespace, name] = eventName.split(".");
+  return recipeMap.next(namespace, name, routingKey).routingKey;
 }
 
-function publish(responseKey, message, context) {
-  return new Promise((resolve, reject) => {
-    if (!message) return resolve();
-    decorateMessage(message, context);
-    return broker.publish(responseKey, message, (err) => {
-      if (err) return reject(err);
-      context.logger.debug("Published message on routing key: %s message: %j", responseKey, message);
-      return resolve();
-    });
+async function publish(responseKey, message, meta, context) {
+  if (!message) return;
+  return await broker.publishMessage(responseKey, message, {
+    messageId: uuid.v4(),
+    correlationId: context.correlationId,
+    headers: meta.properties.headers
   });
 }
 
 function decorateMessage(message, context) {
+  if (!message) return;
+
   if (message.data) {
     const lastData = message.data[message.data.length - 1];
     if (lastData && !lastData.key) {
@@ -104,6 +101,7 @@ function decorateMessage(message, context) {
   if (message.meta.correlationId !== context.correlationId) {
     context.logger.warning("Correlation in new message %j and orig message %j differs!", message, context.message);
   }
+  return message;
 }
 
 function isEmptyMessage(message) {

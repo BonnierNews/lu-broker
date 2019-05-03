@@ -16,4 +16,17 @@ function dieUnless(predicate, message) {
   }
 }
 
-module.exports = dieUnless;
+function dieIf(predicate, message) {
+  if (typeof predicate === "function") {
+    return dieUnless(!predicate(), message);
+  }
+  try {
+    assert(!predicate, message);
+  } catch (err) {
+    err.rejected = true;
+    err.source = caller();
+    throw err;
+  }
+}
+
+module.exports = {dieUnless, dieIf};

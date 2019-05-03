@@ -1,12 +1,31 @@
 "use strict";
 
-const {start} = require("../../");
+const {start} = require("../..");
 const queueHelper = require("../helpers/queue-helper");
 
 async function trigger(message) {
-  await queueHelper.publishMessage(message.source.triggerKey, message);
+  const [namespace, event] = message.source.triggerKey.split(".");
+  await queueHelper.publishWithMeta(message.source.triggerKey, message, {
+    headers: {
+      eventName: `${namespace}.${event}`
+    }
+  });
   return message;
 }
+
+// alternate
+// function triggerEvent(message) {
+//   return triggerMessage(message, "eventName", context.debugMeta);
+// }
+
+// function triggerMessage(message, eventName) {
+//   return {
+//     type: "trigger",
+//     id: eventName,
+//     source: message.source,
+//     meta: message.meta
+//   };
+// }
 
 function handler(message) {
   message.data.push({type: "i-was-here", id: "my-guid"});
@@ -207,6 +226,113 @@ Feature("Lamda functions", () => {
         source: {
           type: "order",
           triggerKey: "event.the-coolest-event-ever.one"
+        },
+        meta: {
+          correlationId: "some-correlation-id"
+        }
+      });
+    });
+  });
+
+  Scenario("Trigger a flow which has lambdas from a another flow", () => {
+    before(() => {
+      queueHelper.resetMock();
+      const lambdasMap = {
+        "sequence.1st.trigger": trigger,
+        "event.1st.one": one,
+        "event.2nd.two": two,
+        "event.1st.three": three
+      };
+      start({
+        recipes: [
+          {
+            namespace: "sequence",
+            name: "1st",
+            sequence: [".trigger"]
+          },
+          {
+            namespace: "event",
+            name: "1st",
+            sequence: [".one", "event.2nd.two", ".three"]
+          },
+          {
+            namespace: "event",
+            name: "2nd",
+            sequence: [".two"]
+          }
+        ],
+        lambdas: lambdasMap
+      });
+    });
+    let messages;
+    let flowMessages;
+
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = queueHelper.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      messages = await queueHelper.publishAndConsumeReply(
+        "sequence.1st.trigger",
+        {
+          type: "foo",
+          meta: {correlationId: "some-correlation-id"},
+          data: [],
+          source: {
+            type: "order",
+            triggerKey: "event.1st.one"
+          }
+        },
+        "sequence.1st.processed"
+      );
+    });
+
+    Then("the trigger lambda should be processed, and return the expected result", () => {
+      messages.length.should.eql(1);
+      const {msg, key} = messages.pop();
+      key.should.eql("sequence.1st.processed");
+      msg.should.eql({
+        type: "foo",
+        source: {
+          type: "order",
+          triggerKey: "event.1st.one"
+        },
+        data: [],
+        meta: {
+          correlationId: "some-correlation-id"
+        }
+      });
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages
+        .map(({key}) => key)
+        .should.eql(["event.1st.one", "event.2nd.two", "event.1st.three", "event.1st.processed"]);
+
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.1st.processed");
+      msg.should.eql({
+        type: "foo",
+        data: [
+          {
+            type: "1-was-here",
+            id: "my-guid-1",
+            key: "event.1st.one"
+          },
+          {
+            type: "2-was-here",
+            id: "my-guid-2",
+            key: "event.2nd.two"
+          },
+          {
+            type: "3-was-here",
+            id: "my-guid-3",
+            key: "event.1st.three"
+          }
+        ],
+        source: {
+          type: "order",
+          triggerKey: "event.1st.one"
         },
         meta: {
           correlationId: "some-correlation-id"
