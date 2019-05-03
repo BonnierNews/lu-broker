@@ -1,0 +1,7 @@
+{
+  "name": "lu-broker",
+  "version": "1.0.0",
+  "description": "A broker and mediator for lu-projects",
+  "main": "index.js",
+  "license": "MIT"
+}
