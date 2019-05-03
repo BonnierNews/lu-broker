@@ -11,6 +11,7 @@ const broker = require("./broker");
 let mappings;
 async function start({recipes, lambdas}) {
   mappings = lambdas;
+  console.log("***** DEBUG ****", broker.subscribe, __filename);
   return await util.promisify(broker.subscribe)(Object.keys(lambdas), queueName, handleMessageWrapper);
 }
 
