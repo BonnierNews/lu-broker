@@ -3,6 +3,7 @@
 const recipesRepo = require("../../lib/recipe-repo");
 
 describe("recipes-repo", () => {
+  let repo;
   const events = [
     {
       name: "baz",
@@ -15,8 +16,9 @@ describe("recipes-repo", () => {
       sequence: [".validate", "event.baz.one", ".two"]
     }
   ];
-
-  const repo = recipesRepo.init(events);
+  before(() => {
+    repo = recipesRepo.init(events);
+  });
 
   it("should return empty if no events", () => {
     const nullRepo = recipesRepo.init([]);
@@ -51,6 +53,29 @@ describe("recipes-repo", () => {
 
     it("should return each event-name as key", () => {
       repo.keys().should.eql(["event.baz.#", "event.bar.#"]);
+    });
+  });
+
+  describe("triggerKeys", () => {
+    it("should return empty if no events", () => {
+      const nullRepo = recipesRepo.init([]);
+      nullRepo.triggerKeys().should.eql([]);
+    });
+
+    it("should return each event-name as key", () => {
+      repo.triggerKeys().should.eql(["trigger.event.baz", "trigger.event.bar"]);
+    });
+  });
+
+  describe("first", () => {
+    it("should return empty if no events", () => {
+      const nullRepo = recipesRepo.init([]);
+      should.not.exist(nullRepo.first());
+    });
+
+    it("should return the first key of a flow", () => {
+      repo.first("event", "baz").should.eql("event.baz.one");
+      repo.first("event", "bar").should.eql("event.bar.validate");
     });
   });
 });
