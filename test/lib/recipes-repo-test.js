@@ -7,22 +7,22 @@ const passThru = (msg) => msg;
 describe("recipes-repo", () => {
   let repo;
   const lambas = {
-    "event.baz.one": passThru,
-    "event.baz.two": passThru,
-    "event.baz.three": passThru,
+    "event.baz.changeme.one": passThru,
+    "event.baz.changeme.two": passThru,
+    "event.baz.changeme.three": passThru,
     "event.bar.validate": passThru,
-    "event.bar.two": passThru
+    "event.bar.changeme.two": passThru
   };
   const events = [
     {
       name: "baz",
       namespace: "event",
-      sequence: [".one", ".two", ".three"]
+      sequence: [".changeme.one", ".changeme.two", ".changeme.three"]
     },
     {
       name: "bar",
       namespace: "event",
-      sequence: [".validate", "event.baz.one", ".two"]
+      sequence: [".validate", "event.baz.changeme.one", ".changeme.two"]
     }
   ];
   before(() => {
@@ -31,15 +31,15 @@ describe("recipes-repo", () => {
 
   it("should return empty if no events", () => {
     const nullRepo = recipesRepo.init([]);
-    should.not.exist(nullRepo.next("event.baz.one"));
+    should.not.exist(nullRepo.next("event.baz.changeme.one"));
   });
 
   it("should get the next key for a simple event", () => {
-    repo.next("event.baz.one").should.eql("event.baz.two");
-    repo.next("event.baz.two").should.eql("event.baz.three");
+    repo.next("event.baz.changeme.one").should.eql("event.baz.changeme.two");
+    repo.next("event.baz.changeme.two").should.eql("event.baz.changeme.three");
   });
   it("should get processed as the next key for a simple event", () => {
-    repo.next("event.baz.three").should.eql("event.baz.processed");
+    repo.next("event.baz.changeme.three").should.eql("event.baz.processed");
   });
 
   it("should get undefined as the next key when processed", () => {
@@ -47,11 +47,11 @@ describe("recipes-repo", () => {
   });
 
   it("should get the next key for an event with included steps", () => {
-    repo.next("event.bar.validate").should.eql("event.bar.event.baz.one");
-    repo.next("event.bar.event.baz.one").should.eql("event.bar.two");
+    repo.next("event.bar.validate").should.eql("event.bar.event.baz.changeme.one");
+    repo.next("event.bar.event.baz.changeme.one").should.eql("event.bar.changeme.two");
   });
   it("should get processed as the next key for a simple event with included steps", () => {
-    repo.next("event.bar.two").should.eql("event.bar.processed");
+    repo.next("event.bar.changeme.two").should.eql("event.bar.processed");
   });
 
   describe("keys", () => {
@@ -83,18 +83,18 @@ describe("recipes-repo", () => {
     });
 
     it("should return the first key of a flow", () => {
-      repo.first("event", "baz").should.eql("event.baz.one");
+      repo.first("event", "baz").should.eql("event.baz.changeme.one");
       repo.first("event", "bar").should.eql("event.bar.validate");
     });
   });
 
   describe("getHandlerFunction", () => {
     it("should find a fn for a key", () => {
-      repo.handler("event.baz.one").should.eql(passThru);
-      repo.handler("event.baz.two").should.eql(passThru);
-      repo.handler("event.baz.three").should.eql(passThru);
+      repo.handler("event.baz.changeme.one").should.eql(passThru);
+      repo.handler("event.baz.changeme.two").should.eql(passThru);
+      repo.handler("event.baz.changeme.three").should.eql(passThru);
       repo.handler("event.bar.validate").should.eql(passThru);
-      repo.handler("event.bar.two").should.eql(passThru);
+      repo.handler("event.bar.changeme.two").should.eql(passThru);
     });
 
     it("should not find a fn for an unknown key", () => {
@@ -102,7 +102,7 @@ describe("recipes-repo", () => {
     });
 
     it("should find a fn for a borrowed key", () => {
-      repo.handler("event.bar.event.baz.one").should.eql(passThru);
+      repo.handler("event.bar.event.baz.changeme.one").should.eql(passThru);
     });
   });
 });

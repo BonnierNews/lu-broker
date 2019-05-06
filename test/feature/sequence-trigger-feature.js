@@ -33,14 +33,14 @@ Feature("Lamda functions", () => {
     before(() => {
       queueHelper.resetMock();
       const lambdasMap = {
-        "event.some-name.one": handler
+        "event.some-name.changeme.one": handler
       };
       start({
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [".one"]
+            sequence: [".changeme.one"]
           }
         ],
         lambdas: lambdasMap
@@ -67,7 +67,7 @@ Feature("Lamda functions", () => {
           {
             type: "i-was-here",
             id: "my-guid",
-            key: "event.some-name.one"
+            key: "event.some-name.changeme.one"
           }
         ],
         source,
@@ -82,16 +82,16 @@ Feature("Lamda functions", () => {
     before(() => {
       queueHelper.resetMock();
       const lambdasMap = {
-        "event.the-coolest-event-ever.one": one,
-        "event.the-coolest-event-ever.two": two,
-        "event.the-coolest-event-ever.three": three
+        "event.the-coolest-event-ever.changeme.one": one,
+        "event.the-coolest-event-ever.changeme.two": two,
+        "event.the-coolest-event-ever.changeme.three": three
       };
       start({
         recipes: [
           {
             namespace: "event",
             name: "the-coolest-event-ever",
-            sequence: [".one", ".two", ".three"]
+            sequence: [".changeme.one", ".changeme.two", ".changeme.three"]
           }
         ],
         lambdas: lambdasMap
@@ -118,17 +118,17 @@ Feature("Lamda functions", () => {
           {
             type: "1-was-here",
             id: "my-guid-1",
-            key: "event.the-coolest-event-ever.one"
+            key: "event.the-coolest-event-ever.changeme.one"
           },
           {
             type: "2-was-here",
             id: "my-guid-2",
-            key: "event.the-coolest-event-ever.two"
+            key: "event.the-coolest-event-ever.changeme.two"
           },
           {
             type: "3-was-here",
             id: "my-guid-3",
-            key: "event.the-coolest-event-ever.three"
+            key: "event.the-coolest-event-ever.changeme.three"
           }
         ],
         source,
@@ -143,21 +143,21 @@ Feature("Lamda functions", () => {
     before(() => {
       queueHelper.resetMock();
       const lambdasMap = {
-        "event.1st.one": one,
-        "event.2nd.two": two,
-        "event.1st.three": three
+        "event.first.changeme.one": one,
+        "event.second.changeme.two": two,
+        "event.first.changeme.three": three
       };
       start({
         recipes: [
           {
             namespace: "event",
-            name: "1st",
-            sequence: [".one", "event.2nd.two", ".three"]
+            name: "first",
+            sequence: [".changeme.one", "event.second.changeme.two", ".changeme.three"]
           },
           {
             namespace: "event",
-            name: "2nd",
-            sequence: [".two"]
+            name: "second",
+            sequence: [".changeme.two"]
           }
         ],
         lambdas: lambdasMap
@@ -170,16 +170,21 @@ Feature("Lamda functions", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await queueHelper.publishMessage("trigger.event.1st", source);
+      await queueHelper.publishMessage("trigger.event.first", source);
     });
 
     Then("the flow should be completed", () => {
       flowMessages
         .map(({key}) => key)
-        .should.eql(["event.1st.one", "event.1st.event.2nd.two", "event.1st.three", "event.1st.processed"]);
+        .should.eql([
+          "event.first.changeme.one",
+          "event.first.event.second.changeme.two",
+          "event.first.changeme.three",
+          "event.first.processed"
+        ]);
 
       const {msg, key} = flowMessages.pop();
-      key.should.eql("event.1st.processed");
+      key.should.eql("event.first.processed");
       msg.should.eql({
         type: "event",
         id: msg.id,
@@ -187,17 +192,17 @@ Feature("Lamda functions", () => {
           {
             type: "1-was-here",
             id: "my-guid-1",
-            key: "event.1st.one"
+            key: "event.first.changeme.one"
           },
           {
             type: "2-was-here",
             id: "my-guid-2",
-            key: "event.1st.event.2nd.two"
+            key: "event.first.event.second.changeme.two"
           },
           {
             type: "3-was-here",
             id: "my-guid-3",
-            key: "event.1st.three"
+            key: "event.first.changeme.three"
           }
         ],
         source,
