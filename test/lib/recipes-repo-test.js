@@ -18,6 +18,11 @@ describe("recipes-repo", () => {
 
   const repo = recipesRepo.init(events);
 
+  it("should return empty if no events", () => {
+    const nullRepo = recipesRepo.init([]);
+    should.not.exist(nullRepo.next("event.baz.one"));
+  });
+
   it("should get the next key for a simple event", () => {
     repo.next("event.baz.one").should.eql("event.baz.two");
     repo.next("event.baz.two").should.eql("event.baz.three");
@@ -36,5 +41,16 @@ describe("recipes-repo", () => {
   });
   it("should get processed as the next key for a simple event with included steps", () => {
     repo.next("event.bar.two").should.eql("event.bar.processed");
+  });
+
+  describe("keys", () => {
+    it("should return empty if no events", () => {
+      const nullRepo = recipesRepo.init([]);
+      nullRepo.keys().should.eql([]);
+    });
+
+    it("should return each event-name as key", () => {
+      repo.keys().should.eql(["event.baz.#", "event.bar.#"]);
+    });
   });
 });
