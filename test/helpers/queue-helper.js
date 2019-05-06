@@ -1,6 +1,6 @@
 "use strict";
 
-const broker = require("../../broker");
+const broker = require("../../lib/broker");
 const fakeAmqp = require("exp-fake-amqplib");
 const uuid = require("uuid");
 const messages = [];

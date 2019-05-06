@@ -56,9 +56,6 @@ Feature("Lamda functions", () => {
         "sequence.order.trigger": trigger
       };
       start({
-        triggers: {
-          baz: require("foo")
-        },
         recipes: [
           {
             namespace: "sequence",
