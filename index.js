@@ -12,8 +12,8 @@ const buildTriggerHandler = require("./lib/handle-trigger-message");
 
 function start({recipes, lambdas, callback}) {
   callback = callback || noOp;
-  const recipeMap = recipeRepo.init(recipes);
-  const handleFlowMessage = buildFlowHandler(lambdas, recipeMap);
+  const recipeMap = recipeRepo.init(recipes, lambdas);
+  const handleFlowMessage = buildFlowHandler(recipeMap);
   const handleTriggerMessage = buildTriggerHandler(recipeMap);
   broker.subscribe(recipeMap.keys(), lamdasQueueName, handleMessageWrapper(handleFlowMessage), callback);
   broker.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage), callback);

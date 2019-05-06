@@ -2,8 +2,17 @@
 
 const recipesRepo = require("../../lib/recipe-repo");
 
+const passThru = (msg) => msg;
+
 describe("recipes-repo", () => {
   let repo;
+  const lambas = {
+    "event.baz.one": passThru,
+    "event.baz.two": passThru,
+    "event.baz.three": passThru,
+    "event.bar.validate": passThru,
+    "event.bar.two": passThru
+  };
   const events = [
     {
       name: "baz",
@@ -17,7 +26,7 @@ describe("recipes-repo", () => {
     }
   ];
   before(() => {
-    repo = recipesRepo.init(events);
+    repo = recipesRepo.init(events, lambas);
   });
 
   it("should return empty if no events", () => {
@@ -76,6 +85,24 @@ describe("recipes-repo", () => {
     it("should return the first key of a flow", () => {
       repo.first("event", "baz").should.eql("event.baz.one");
       repo.first("event", "bar").should.eql("event.bar.validate");
+    });
+  });
+
+  describe("getHandlerFunction", () => {
+    it("should find a fn for a key", () => {
+      repo.handler("event.baz.one").should.eql(passThru);
+      repo.handler("event.baz.two").should.eql(passThru);
+      repo.handler("event.baz.three").should.eql(passThru);
+      repo.handler("event.bar.validate").should.eql(passThru);
+      repo.handler("event.bar.two").should.eql(passThru);
+    });
+
+    it("should not find a fn for an unknown key", () => {
+      should.not.exist(repo.handler("event.baz.epic-key"));
+    });
+
+    it("should find a fn for a borrowed key", () => {
+      repo.handler("event.bar.event.baz.one").should.eql(passThru);
     });
   });
 });
