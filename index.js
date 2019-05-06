@@ -10,13 +10,14 @@ const recipeRepo = require("./lib/recipe-repo");
 const queueName = "hard-coded"; //TODO: fixme
 const noOp = () => {};
 const buildContext = require("./lib/context");
+const {getReplyToKey} = require("./lib/get-routing-key");
 
 let recipeMap;
 let mappings;
 function start({recipes, lambdas, callback}) {
   recipeMap = recipeRepo.init(recipes);
   mappings = lambdas;
-  broker.subscribe(Object.keys(mappings), queueName, handleMessageWrapper, callback || noOp);
+  broker.subscribe(recipeMap.keys(), queueName, handleMessageWrapper, callback || noOp);
 }
 
 async function handleMessageWrapper(...args) {
@@ -50,7 +51,7 @@ async function handleMessage(message, meta, notify) {
     );
     const responseMessage = await handlerFunction(message, context);
     if (responseMessage) {
-      const responseKey = getResponseKey(message, meta, context.routingKey);
+      const responseKey = getReplyToKey(meta);
       if (!responseKey) {
         logger.info("Message processed, acking");
       } else {
@@ -60,23 +61,11 @@ async function handleMessage(message, meta, notify) {
     return notify.ack();
   } catch (err) {
     if (err.rejected) {
-      const responseKey = getResponseKey(message, meta, context.routingKey);
+      const responseKey = getReplyToKey(meta);
       return rejectMessage(err, responseKey, message, context, notify);
     }
     return retryMessage(err, message, context, notify);
   }
-}
-
-function getResponseKey(msg, meta, routingKey) {
-  // if (routingKey.endsWith(".unrecoverable")) return `${routingKey}.processed`;
-  // if (msg.error) return `${routingKey}.unrecoverable`;
-  // return meta.properties.replyTo;
-  const eventName = meta && meta.properties && meta.properties.headers && meta.properties.headers.eventName;
-  if (!eventName) {
-    throw new Error(`Invalid headers ${JSON.stringify(meta)}`);
-  }
-  const [namespace, name] = eventName.split(".");
-  return recipeMap.next(namespace, name, routingKey).routingKey;
 }
 
 async function publish(responseKey, message, meta, context) {
@@ -84,7 +73,8 @@ async function publish(responseKey, message, meta, context) {
   return await broker.publishMessage(responseKey, message, {
     messageId: uuid.v4(),
     correlationId: context.correlationId,
-    headers: meta.properties.headers
+    headers: meta.properties.headers,
+    replyTo: recipeMap.next(responseKey)
   });
 }
 
