@@ -2,14 +2,14 @@
 
 const config = require("exp-config");
 const uuid = require("uuid");
-const broker = require("./broker");
+const broker = require("./lib/broker");
 const bugsnag = require("bugsnag");
-const retryMessage = require("./retry-message");
-const rejectMessage = require("./reject-message");
+const retryMessage = require("./lib/retry-message");
+const rejectMessage = require("./lib/reject-message");
 const recipeRepo = require("./lib/recipe-repo");
 const queueName = "hard-coded"; //TODO: fixme
 const noOp = () => {};
-const buildContext = require("./context");
+const buildContext = require("./lib/context");
 
 let recipeMap;
 let mappings;

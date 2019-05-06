@@ -1,6 +1,6 @@
 "use strict";
 
-const broker = require("../../broker");
+const broker = require("../../lib/broker");
 
 const oldSub = broker.subscribe;
 broker.subscribe = (routingKeyOrKeys, queue, handler, cb) => {
