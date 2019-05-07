@@ -5,9 +5,10 @@ const recipesRepo = require("../../lib/recipe-repo");
 const passThru = (msg) => msg;
 
 describe("recipes-repo validation", () => {
+  const allowedVerbs = ["get-or-create", "get", "update", "upsert", "delete", "validate", "perform"];
   const lambdas = {
     "event.one.perform.first": passThru,
-    "event.two.perform.get.second": passThru
+    "event.two.perform.second": passThru
   };
   const events = [
     {
@@ -18,7 +19,7 @@ describe("recipes-repo validation", () => {
     {
       name: "two",
       namespace: "event",
-      sequence: [".perform.get.second", "event.one.perform.first"]
+      sequence: [".perform.second", "event.one.perform.first"]
     }
   ];
   describe("validate recipe structure", () => {
@@ -43,15 +44,18 @@ describe("recipes-repo validation", () => {
         });
       }.should.throw(
         Error,
-        "Not all lambdas exists in recipe sequence keys, invalid lambda: event.two.perform.get.second"
+        "Not all lambdas exists in recipe sequence keys, invalid lambda: event.two.perform.second"
       ));
     });
-    it.skip("should not allow borrowing from unknown key", () => {
-      //TODO
+    it("should not allow borrowing from unknown key", () => {
+      (function() {
+        recipesRepo.init([events[0], {...events[1], sequence: [...events[1].sequence, "event.one.perform.three"]}], {
+          ...lambdas,
+          "event.one.perform.three": passThru
+        });
+      }.should.throw(Error, /invalid key: event.one.perform.three/));
     });
-    it.skip("should not allow duplicate keys via synonyms", () => {
-      //TODO
-    });
+
     it("should not allow duplicates in sequence", () => {
       (function() {
         recipesRepo.init([events[0], {...events[1], sequence: [events[1].sequence[0], events[1].sequence[0]]}], {
@@ -59,7 +63,73 @@ describe("recipes-repo validation", () => {
         });
       }.should.throw(Error, 'value: ".perform.get.second" detail: "sequence" position 1 contains a duplicate value'));
     });
+
+    it("should not allow more than 4 parts if no agumentation", () => {
+      (function() {
+        recipesRepo.init(
+          [
+            {
+              name: "one",
+              namespace: "event",
+              sequence: [".perform.first.not-allowed"]
+            }
+          ],
+          {
+            "event.one.perform.first.not-allowed": passThru
+          }
+        );
+      }.should.throw(Error, /event.one.perform.first.not-allowed/));
+    });
+    it("should not allow less than 4 parts if no agumentation", () => {
+      (function() {
+        recipesRepo.init(
+          [
+            {
+              name: "one",
+              namespace: "event",
+              sequence: [".perform"]
+            }
+          ],
+          {
+            "event.one.perform": passThru
+          }
+        );
+      }.should.throw(Error, /event.one.perform/));
+    });
+    it("should not allow more than 5 parts if agumentation", () => {
+      (function() {
+        recipesRepo.init(
+          [
+            {
+              name: "one",
+              namespace: "event",
+              sequence: [".optional.perform.first.not-allowed"]
+            }
+          ],
+          {
+            "event.one.optional.perform.first.not-allowed": passThru
+          }
+        );
+      }.should.throw(Error, /event.one.optional.perform.first.not-allowed/));
+    });
+    it("should not allow less than 5 parts if agumentation", () => {
+      (function() {
+        recipesRepo.init(
+          [
+            {
+              name: "one",
+              namespace: "event",
+              sequence: [".optional.perform"]
+            }
+          ],
+          {
+            "event.one.optional.perform": passThru
+          }
+        );
+      }.should.throw(Error, /event.one.perform/));
+    });
   });
+
   describe("validate verbs", () => {
     it("should not allow unknown verbs", () => {
       (function() {
@@ -75,8 +145,8 @@ describe("recipes-repo validation", () => {
         });
       }.should.throw(Error, /value: "event\.one\.fimp\.first" detail: "0" with value "event.one.fimp.first/));
     });
+
     it("should allow known verbs", () => {
-      const allowedVerbs = ["get-or-create", "get", "update", "upsert", "delete", "validate", "perform"];
       const innerLambdas = {};
       const innerEvents = [
         {
@@ -94,7 +164,79 @@ describe("recipes-repo validation", () => {
         recipesRepo.init(innerEvents, innerLambdas);
       }.should.not.throw(Error));
     });
+
+    it("should allow known verbs when borrowing (plus agumentation)", () => {
+      const innerLambdas = {};
+      const innerEvents = [
+        {
+          name: "one",
+          namespace: "event",
+          sequence: []
+        },
+        {
+          name: "two",
+          namespace: "event",
+          sequence: []
+        },
+        {
+          name: "three",
+          namespace: "event",
+          sequence: []
+        }
+      ];
+      allowedVerbs.forEach((verb) => {
+        innerLambdas[`event.one.${verb}.anything`] = passThru;
+        innerLambdas[`event.one.optional.${verb}.anything`] = passThru;
+        innerEvents[0].sequence.push(`.${verb}.anything`);
+        innerEvents[0].sequence.push(`.optional.${verb}.anything`);
+        innerEvents[1].sequence.push(`event.one.${verb}.anything`);
+        innerEvents[1].sequence.push(`event.one.optional.${verb}.anything`);
+      });
+
+      (function() {
+        recipesRepo.init(innerEvents, innerLambdas);
+      }.should.not.throw(Error));
+    });
+
+    it("should allow known verbs when agumentation", () => {
+      const innerLambdas = {};
+      const innerEvents = [
+        {
+          name: "one",
+          namespace: "event",
+          sequence: []
+        }
+      ];
+      allowedVerbs.forEach((verb) => {
+        innerLambdas[`event.one.optional.${verb}.anything`] = passThru;
+        innerEvents[0].sequence.push(`.optional.${verb}.anything`);
+      });
+
+      (function() {
+        recipesRepo.init(innerEvents, innerLambdas);
+      }.should.not.throw(Error));
+    });
+
+    it("should not allow unknown agumentation ", () => {
+      const innerLambdas = {};
+      const innerEvents = [
+        {
+          name: "one",
+          namespace: "event",
+          sequence: []
+        }
+      ];
+      allowedVerbs.forEach((verb) => {
+        innerLambdas[`event.one.baz.${verb}.anything`] = passThru;
+        innerEvents[0].sequence.push(`.baz.${verb}.anything`);
+      });
+
+      (function() {
+        recipesRepo.init(innerEvents, innerLambdas);
+      }.should.throw(Error, /unknown/));
+    });
   });
+
   describe("validate namespace names", () => {
     it("should not allow unknown namespaces", () => {
       (function() {
@@ -107,8 +249,8 @@ describe("recipes-repo validation", () => {
       }.should.not.throw(Error));
       (function() {
         const copy = {...lambdas};
-        delete copy["event.two.perform.get.second"];
-        copy["action.two.perform.get.second"] = passThru;
+        delete copy["event.two.get.second"];
+        copy["action.two.get.second"] = passThru;
         recipesRepo.init([events[0], {...events[1], namespace: "action"}], copy);
       }.should.not.throw(Error));
     });
