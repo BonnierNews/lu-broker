@@ -10,7 +10,7 @@ describe("recipes-repo", () => {
     "event.baz.perform.one": passThru,
     "event.baz.perform.two": passThru,
     "event.baz.perform.three": passThru,
-    "event.bar.validate": passThru,
+    "event.bar.validate.one": passThru,
     "event.bar.perform.two": passThru
   };
   const events = [
@@ -22,7 +22,7 @@ describe("recipes-repo", () => {
     {
       name: "bar",
       namespace: "event",
-      sequence: [".validate", "event.baz.perform.one", ".perform.two"]
+      sequence: [".validate.one", "event.baz.perform.one", ".perform.two"]
     }
   ];
   before(() => {
@@ -47,7 +47,7 @@ describe("recipes-repo", () => {
   });
 
   it("should get the next key for an event with included steps", () => {
-    repo.next("event.bar.validate").should.eql("event.bar.event.baz.perform.one");
+    repo.next("event.bar.validate.one").should.eql("event.bar.event.baz.perform.one");
     repo.next("event.bar.event.baz.perform.one").should.eql("event.bar.perform.two");
   });
   it("should get processed as the next key for a simple event with included steps", () => {
@@ -84,7 +84,7 @@ describe("recipes-repo", () => {
 
     it("should return the first key of a flow", () => {
       repo.first("event", "baz").should.eql("event.baz.perform.one");
-      repo.first("event", "bar").should.eql("event.bar.validate");
+      repo.first("event", "bar").should.eql("event.bar.validate.one");
     });
   });
 
@@ -93,7 +93,7 @@ describe("recipes-repo", () => {
       repo.handler("event.baz.perform.one").should.eql(passThru);
       repo.handler("event.baz.perform.two").should.eql(passThru);
       repo.handler("event.baz.perform.three").should.eql(passThru);
-      repo.handler("event.bar.validate").should.eql(passThru);
+      repo.handler("event.bar.validate.one").should.eql(passThru);
       repo.handler("event.bar.perform.two").should.eql(passThru);
     });
 

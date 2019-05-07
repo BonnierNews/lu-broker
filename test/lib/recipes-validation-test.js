@@ -22,6 +22,7 @@ describe("recipes-repo validation", () => {
       sequence: [".perform.second", "event.one.perform.first"]
     }
   ];
+
   describe("validate recipe structure", () => {
     it("should not allow unknown keys", () => {
       (function() {
@@ -29,6 +30,7 @@ describe("recipes-repo validation", () => {
       }.should.throw(Error, /value: "foobar" detail: "foobar" is not allowed/));
     });
   });
+
   describe("validate keys and lambdas", () => {
     it("should not allow sequence keys that not exist in lamda map", () => {
       (function() {
@@ -37,6 +39,7 @@ describe("recipes-repo validation", () => {
         });
       }.should.throw(Error, "Not all recipe sequence keys exists in lambdas, invalid key: event.two.perform.three"));
     });
+
     it("should not allow lamdas that not exist in sequence keys", () => {
       (function() {
         recipesRepo.init([events[0], {...events[1], sequence: [events[1].sequence[1]]}], {
@@ -47,13 +50,14 @@ describe("recipes-repo validation", () => {
         "Not all lambdas exists in recipe sequence keys, invalid lambda: event.two.perform.second"
       ));
     });
+
     it("should not allow borrowing from unknown key", () => {
       (function() {
         recipesRepo.init([events[0], {...events[1], sequence: [...events[1].sequence, "event.one.perform.three"]}], {
           ...lambdas,
           "event.one.perform.three": passThru
         });
-      }.should.throw(Error, /invalid key: event.one.perform.three/));
+      }.should.throw(Error, /Not all lambdas exists in recipe sequence keys, invalid lambda: event.one.perform.three/));
     });
 
     it("should not allow duplicates in sequence", () => {
@@ -61,7 +65,7 @@ describe("recipes-repo validation", () => {
         recipesRepo.init([events[0], {...events[1], sequence: [events[1].sequence[0], events[1].sequence[0]]}], {
           ...lambdas
         });
-      }.should.throw(Error, 'value: ".perform.get.second" detail: "sequence" position 1 contains a duplicate value'));
+      }.should.throw(Error, 'value: ".perform.second" detail: "sequence" position 1 contains a duplicate value'));
     });
 
     it("should not allow more than 4 parts if no agumentation", () => {
@@ -78,8 +82,9 @@ describe("recipes-repo validation", () => {
             "event.one.perform.first.not-allowed": passThru
           }
         );
-      }.should.throw(Error, /event.one.perform.first.not-allowed/));
+      }.should.throw(Error, /.perform.first.not-allowed/));
     });
+
     it("should not allow less than 4 parts if no agumentation", () => {
       (function() {
         recipesRepo.init(
@@ -94,8 +99,9 @@ describe("recipes-repo validation", () => {
             "event.one.perform": passThru
           }
         );
-      }.should.throw(Error, /event.one.perform/));
+      }.should.throw(Error, /.perform/));
     });
+
     it("should not allow more than 5 parts if agumentation", () => {
       (function() {
         recipesRepo.init(
@@ -110,8 +116,9 @@ describe("recipes-repo validation", () => {
             "event.one.optional.perform.first.not-allowed": passThru
           }
         );
-      }.should.throw(Error, /event.one.optional.perform.first.not-allowed/));
+      }.should.throw(Error, /.optional.perform.first.not-allowed/));
     });
+
     it("should not allow less than 5 parts if agumentation", () => {
       (function() {
         recipesRepo.init(
@@ -126,24 +133,24 @@ describe("recipes-repo validation", () => {
             "event.one.optional.perform": passThru
           }
         );
-      }.should.throw(Error, /event.one.perform/));
+      }.should.throw(Error, /.optional.perform/));
     });
   });
 
   describe("validate verbs", () => {
     it("should not allow unknown verbs", () => {
       (function() {
-        recipesRepo.init([events[0], {...events[1], sequence: ["fimp.first", events[1].sequence[1]]}], {
+        recipesRepo.init([events[0], {...events[1], sequence: [".fimp.first", events[1].sequence[1]]}], {
           ...lambdas,
           "event.two.fimp.first": passThru
         });
-      }.should.throw(Error, /value: "fimp\.first" detail: "0" with value "fimp\.first"/));
+      }.should.throw(Error, /Invalid verb in .fimp.first/));
       (function() {
         recipesRepo.init([events[0], {...events[1], sequence: ["event.one.fimp.first", events[1].sequence[1]]}], {
           ...lambdas,
           "event.one.fimp.first": passThru
         });
-      }.should.throw(Error, /value: "event\.one\.fimp\.first" detail: "0" with value "event.one.fimp.first/));
+      }.should.throw(Error, /Invalid verb in event.one.fimp.first/));
     });
 
     it("should allow known verbs", () => {
@@ -233,7 +240,7 @@ describe("recipes-repo validation", () => {
 
       (function() {
         recipesRepo.init(innerEvents, innerLambdas);
-      }.should.throw(Error, /unknown/));
+      }.should.throw(Error, /Invalid step .baz.get-or-create.anything/));
     });
   });
 
@@ -245,24 +252,33 @@ describe("recipes-repo validation", () => {
     });
     it("should allow known namespaces", () => {
       (function() {
-        recipesRepo.init([events[0], {...events[1], namespace: "event"}], lambdas);
-      }.should.not.throw(Error));
-      (function() {
-        const copy = {...lambdas};
-        delete copy["event.two.get.second"];
-        copy["action.two.get.second"] = passThru;
-        recipesRepo.init([events[0], {...events[1], namespace: "action"}], copy);
+        recipesRepo.init(
+          [
+            {
+              namespace: "event",
+              name: "one",
+              sequence: [".perform.first"]
+            },
+            {
+              namespace: "action",
+              name: "two",
+              sequence: [".perform.second"]
+            }
+          ],
+          {
+            "event.one.perform.first": passThru,
+            "action.two.perform.second": passThru
+          }
+        );
       }.should.not.throw(Error));
     });
   });
+
   describe("validate event names", () => {
     it("should not allow duplicates", () => {
       (function() {
         recipesRepo.init([...events, events[0]], lambdas);
-      }.should.throw(
-        Error,
-        'value: {"name":"one","namespace":"event","sequence":[".perform.first"]} detail: "value" position 2 contains a duplicate value'
-      ));
+      }.should.throw(Error, /duplicate value/));
     });
     it("should not allow invalid chars", () => {
       (function() {
