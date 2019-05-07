@@ -1,22 +1,23 @@
 "use strict";
 
 const config = require("exp-config");
-const broker = require("./lib/broker");
+const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName} = require("./lib/broker");
 const bugsnag = require("bugsnag");
 const recipeRepo = require("./lib/recipe-repo");
-const lamdasQueueName = "hard-coded-lambdas"; //TODO: fixme
-const triggersQueueName = "hard-coded-triggers"; //TODO: fixme
 const noOp = () => {};
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
+const buildRejectHandler = require("./lib/handle-rejected-message");
 
 function start({recipes, lambdas, callback}) {
   callback = callback || noOp;
   const recipeMap = recipeRepo.init(recipes, lambdas);
   const handleFlowMessage = buildFlowHandler(recipeMap);
   const handleTriggerMessage = buildTriggerHandler(recipeMap);
-  broker.subscribe(recipeMap.keys(), lamdasQueueName, handleMessageWrapper(handleFlowMessage), callback);
-  broker.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage), callback);
+  const handleRejectMessage = buildRejectHandler();
+  crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage), callback);
+  crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage), callback);
+  reject.subscribe(recipeMap.keys(), rejectQueueName, handleMessageWrapper(handleRejectMessage));
 }
 
 function handleMessageWrapper(fn) {

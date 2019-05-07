@@ -1,100 +1,91 @@
 "use strict";
 
-const broker = require("../../lib/broker");
+const {crd, reject} = require("../../lib/broker");
 const fakeAmqp = require("exp-fake-amqplib");
 const uuid = require("uuid");
-const messages = [];
-const ackedMessages = [];
-const nackedMessages = [];
 
-function subscribe(routingKey, done) {
-  const localMessages = [];
+function queue(broker) {
+  const ackedMessages = [];
+  const nackedMessages = [];
+  const oldSub = broker.subscribe;
 
-  broker.subscribeTmp(routingKey, (msg, meta) => {
-    localMessages.push({key: meta.fields.routingKey, msg, meta});
-    messages.push(msg);
-    if (typeof done === "function") {
-      const tmpFn = done;
-      done = null; // reset done so it wont be called more than once.
-      tmpFn(null, msg);
-    }
-    // notify.ack();
-  });
+  broker.subscribe = (routingKeyOrKeys, q, handler, cb) => {
+    const oldHandler = handler;
+    handler = (message, meta, notify) => {
+      const oldAck = notify.ack;
+      const oldNack = notify.nack;
+      notify.ack = () => {
+        ackedMessages.push(message);
+        broker.emit("ack", message, meta);
+        oldAck();
+      };
+      notify.nack = () => {
+        nackedMessages.push(message);
+        broker.emit("nack", message, meta);
+        oldNack();
+      };
+      oldHandler(message, meta, notify);
+    };
+    oldSub(routingKeyOrKeys, q, handler, cb);
+  };
 
-  return localMessages;
-}
-
-function subscribeAndStop(routingKey, done) {
-  return subscribe(routingKey, done);
-}
-
-function publishMessage(routingKey, message, done) {
-  return publishWithMeta(routingKey, message, {}, done);
-}
-
-function publishWithMeta(routingKey, message, meta, done) {
-  return new Promise((resolve) => {
-    meta.messageId = uuid.v4();
-    awaitMessage(meta.messageId, () => {
-      resolve();
-      if (done && typeof done === "function") return done();
+  function subscribe(routingKey, done) {
+    const messages = [];
+    broker.subscribeTmp(routingKey, (msg, meta) => {
+      messages.push({key: meta.fields.routingKey, msg, meta});
+      if (typeof done === "function") {
+        const tmpFn = done;
+        done = null; // reset done so it wont be called more than once.
+        tmpFn(null, msg);
+      }
     });
-    broker.publish(routingKey, message, meta);
-  });
-}
-
-function awaitMessage(messageId, cb) {
-  function messageProcessed(message, meta, reason) {
-    broker.removeListener("ack", messageProcessed);
-    broker.removeListener("nack", messageProcessed);
-    if (reason === "ack") {
-      ackedMessages.push(message);
-    } else {
-      nackedMessages.push(message);
-    }
-    if (meta.properties.messageId === messageId) {
-      return cb();
-    } else {
-      awaitMessage(messageId, cb);
-    }
+    return messages;
   }
 
-  broker.once("ack", messageProcessed);
-  broker.once("nack", messageProcessed);
-}
+  function publishMessage(routingKey, message, done) {
+    publishWithMeta(routingKey, message, {}, done);
+  }
 
-async function publishAndConsumeReply(routingKey, msg, expectedReply) {
-  const replyTo = `reply.${uuid.v4()}`;
-  const [name, namespace] = routingKey.split(".");
-  expectedReply = expectedReply || replyTo;
-  const errorKey = `${routingKey}.error`;
-  const localMessages = subscribe([expectedReply, errorKey]);
-  await publishWithMeta(routingKey, msg, {
-    replyTo,
-    headers: {
-      eventName: `${name}.${namespace}`
+  function publishWithMeta(routingKey, message, meta, done) {
+    meta.messageId = uuid.v4();
+    if (typeof done === "function") {
+      awaitMessage(meta.messageId, done);
     }
-  });
-  localMessages.length.should.eql(1);
-  localMessages[0].key.should.eql(expectedReply);
-  return localMessages;
-}
+    broker.publish(routingKey, message, meta);
+  }
 
-function resetMock() {
-  fakeAmqp.resetMock();
-  messages.length = 0;
-  ackedMessages.length = 0;
-  nackedMessages.length = 0;
+  function awaitMessage(messageId, cb) {
+    function messageProcessed(message, meta) {
+      broker.removeListener("ack", messageProcessed);
+      broker.removeListener("nack", messageProcessed);
+      if (meta.properties.messageId === messageId) {
+        return cb();
+      } else {
+        awaitMessage(messageId, cb);
+      }
+    }
+
+    broker.once("ack", messageProcessed);
+    broker.once("nack", messageProcessed);
+  }
+
+  function resetMock() {
+    fakeAmqp.resetMock();
+    ackedMessages.length = 0;
+    nackedMessages.length = 0;
+  }
+
+  return {
+    ackedMessages,
+    nackedMessages,
+    publishMessage,
+    publishWithMeta,
+    subscribe,
+    resetMock
+  };
 }
 
 module.exports = {
-  receivedMessages: messages,
-  ackedMessages,
-  nackedMessages,
-  publishMessage,
-  publishWithMeta,
-  subscribe,
-  subscribeAndStop,
-  resetMock,
-  publishAndConsumeReply
+  reject: queue(reject),
+  crd: queue(crd)
 };

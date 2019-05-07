@@ -1,7 +1,8 @@
 "use strict";
 
 const {start} = require("../..");
-const queueHelper = require("../helpers/queue-helper");
+const {crd} = require("../helpers/queue-helper");
+
 function handler(message) {
   message.data.push({type: "i-was-here", id: "my-guid"});
   return message;
@@ -31,7 +32,7 @@ Feature("Lamda functions", () => {
   };
   Scenario("Trigger a flow with one lambda from a known trigger key", () => {
     before(() => {
-      queueHelper.resetMock();
+      crd.resetMock();
       const lambdasMap = {
         "event.some-name.perform.one": handler
       };
@@ -49,11 +50,11 @@ Feature("Lamda functions", () => {
     let flowMessages;
 
     Given("we are listening for messages on the event namespace", () => {
-      flowMessages = queueHelper.subscribe("event.#");
+      flowMessages = crd.subscribe("event.#");
     });
 
     When("we publish an order on a trigger key", async () => {
-      await queueHelper.publishMessage("trigger.event.some-name", source);
+      await crd.publishMessage("trigger.event.some-name", source);
     });
 
     And("the flow should be completed", () => {
@@ -80,7 +81,7 @@ Feature("Lamda functions", () => {
 
   Scenario("Trigger a flow with three lambdas from a known trigger key", () => {
     before(() => {
-      queueHelper.resetMock();
+      crd.resetMock();
       const lambdasMap = {
         "event.the-coolest-event-ever.perform.one": one,
         "event.the-coolest-event-ever.perform.two": two,
@@ -100,11 +101,11 @@ Feature("Lamda functions", () => {
     let flowMessages;
 
     Given("we are listening for messages on the event namespace", () => {
-      flowMessages = queueHelper.subscribe("event.#");
+      flowMessages = crd.subscribe("event.#");
     });
 
     When("we publish an order on a trigger key", async () => {
-      await queueHelper.publishMessage("trigger.event.the-coolest-event-ever", source);
+      await crd.publishMessage("trigger.event.the-coolest-event-ever", source);
     });
 
     Then("the flow should be completed", () => {
@@ -141,7 +142,7 @@ Feature("Lamda functions", () => {
 
   Scenario("Trigger a flow which has lambdas from a another flow", () => {
     before(() => {
-      queueHelper.resetMock();
+      crd.resetMock();
       const lambdasMap = {
         "event.first.perform.one": one,
         "event.second.perform.two": two,
@@ -166,11 +167,11 @@ Feature("Lamda functions", () => {
     let flowMessages;
 
     Given("we are listening for messages on the event namespace", () => {
-      flowMessages = queueHelper.subscribe("event.#");
+      flowMessages = crd.subscribe("event.#");
     });
 
     When("we publish an order on a trigger key", async () => {
-      await queueHelper.publishMessage("trigger.event.first", source);
+      await crd.publishMessage("trigger.event.first", source);
     });
 
     Then("the flow should be completed", () => {

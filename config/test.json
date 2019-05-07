@@ -14,5 +14,13 @@
     "queueArguments": {
       "x-dead-letter-exchange": "RetryExchangeTest"
     }
+  },
+  "rabbitReject": {
+    "url": "amqp://localhost",
+    "apiUrl": "http://guest:guest@localhost:15672",
+    "exchange": "RejectExchangeTest",
+    "queueArguments": {
+      "x-dead-letter-exchange": "DLX"
+    }
   }
 }
