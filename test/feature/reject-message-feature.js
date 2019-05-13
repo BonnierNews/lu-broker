@@ -4,8 +4,8 @@ const {start} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
 
 function rejectHandler(message, context) {
-  const {dieUnless} = context;
-  dieUnless(undefined, "dying hard!");
+  const {rejectUnless} = context;
+  rejectUnless(undefined, "dying hard!");
 }
 
 Feature("Reject message", () => {

@@ -17,6 +17,7 @@
     "exp-config": "^2.0.1",
     "joi": "^14.3.1",
     "lu-logger": "github:BonnierNews/lu-logger#v2.1.5",
+    "request": "^2.88.0",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
