@@ -22,5 +22,6 @@
     "queueArguments": {
       "x-dead-letter-exchange": "DLX"
     }
-  }
+  },
+  "proxyUrl": "http://api.example.com"
 }
