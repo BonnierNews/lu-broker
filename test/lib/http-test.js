@@ -34,10 +34,12 @@ describe("http", () => {
         .catch(() => done());
     });
 
-    it("should be empty on 404", async () => {
+    it("should throw on 404", (done) => {
       fakeApi.get("/some/path").reply(404, {ok: true});
-      const result = await http.asserted.get({path: "/some/path", correlationId});
-      should.not.exist(result);
+      http.asserted
+        .get({path: "/some/path", correlationId})
+        .then(() => done("should not come here"))
+        .catch(() => done());
     });
 
     it("should do delete-requests", async () => {
@@ -75,10 +77,11 @@ describe("http", () => {
         });
       });
 
-      it("should be empty on 404", async () => {
+      it("should throw on 404", (done) => {
         fakeApi[method.toLowerCase()]("/some/path").reply(404, {ok: true});
-        const result = await http.asserted[method.toLowerCase()]({path: "/some/path", correlationId});
-        should.not.exist(result);
+        http.asserted[method.toLowerCase()]({path: "/some/path", correlationId})
+          .then(() => done("should not come here"))
+          .catch(() => done());
       });
     });
   });
