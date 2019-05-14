@@ -1,6 +1,14 @@
 "use strict";
 
 const config = require("exp-config");
+if (config.envName === "test") {
+  const fakeAmqp = require("exp-fake-amqplib");
+  const proxyquire = require("proxyquire");
+  proxyquire("exp-amqp-connection/bootstrap", {
+    "amqplib/callback_api": fakeAmqp
+  });
+}
+
 const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName} = require("./lib/broker");
 const bugsnag = require("bugsnag");
 const recipeRepo = require("./lib/recipe-repo");
