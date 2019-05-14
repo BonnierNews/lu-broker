@@ -9,6 +9,7 @@ const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
+const testHelpers = require("./lib/test-helpers");
 
 function start({recipes, lambdas, callback}) {
   callback = callback || noOp;
@@ -30,5 +31,6 @@ function handleMessageWrapper(fn) {
 
 module.exports = {
   start,
-  buildContext: context
+  buildContext: context,
+  testHelpers
 };
