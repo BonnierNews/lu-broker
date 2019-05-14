@@ -1,5 +1,6 @@
 "use strict";
 
+const nock = require("nock");
 const fakeApi = require("../helpers/fake-api");
 const http = require("../../lib/http");
 
@@ -156,6 +157,18 @@ describe("http", () => {
         result.statusCode.should.eql(404);
         result.body.should.eql({ok: true});
       });
+    });
+  });
+
+  describe("with baseUrl", () => {
+    const correlationId = "http-test-with-base-url";
+    it("should allow url as param", async () => {
+      nock("http://other-api.example.com")
+        .get("/some/path")
+        .reply(200, {ok: true});
+      const result = await http.get({baseUrl: "http://other-api.example.com", path: "/some/path", correlationId});
+      result.statusCode.should.eql(200);
+      result.body.should.eql({ok: true});
     });
   });
   afterEach(fakeApi.reset);
