@@ -1,5 +1,6 @@
 "use strict";
 
+require("./ack-event-broker");
 const {crd, reject} = require("../../lib/broker");
 const fakeAmqp = require("exp-fake-amqplib");
 const uuid = require("uuid");

@@ -27,12 +27,3 @@ const proxyquire = require("proxyquire");
 proxyquire("exp-amqp-connection/bootstrap", {
   "amqplib/callback_api": fakeAmqp
 });
-
-require("./ack-event-broker");
-
-// process.on("unhandledRejection", (err) => {
-//   // eslint-disable-next-line no-console
-//   console.log(`Caught rejection: ${err}`);
-//   // eslint-disable-next-line no-console
-//   console.error(err);
-// });
