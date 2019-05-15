@@ -1,7 +1,7 @@
 "use strict";
 
 const config = require("exp-config");
-if (config.envName === "test") {
+if (config.envName === "test")  {
   const fakeAmqp = require("exp-fake-amqplib");
   const proxyquire = require("proxyquire");
   proxyquire("exp-amqp-connection/bootstrap", {
