@@ -3,24 +3,20 @@
 const {start} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 
-function handler(message) {
-  message.data.push({type: "i-was-here", id: "my-guid"});
-  return message;
+function handler(message, {append}) {
+  return append(message, {type: "i-was-here", id: "my-guid"});
 }
 
-function one(message) {
-  message.data.push({type: "1-was-here", id: "my-guid-1"});
-  return message;
+function one(message, {append}) {
+  return append(message, {type: "1-was-here", id: "my-guid-1"});
 }
 
-function two(message) {
-  message.data.push({type: "2-was-here", id: "my-guid-2"});
-  return message;
+function two(message, {append}) {
+  return append(message, {type: "2-was-here", id: "my-guid-2"});
 }
 
-function three(message) {
-  message.data.push({type: "3-was-here", id: "my-guid-3"});
-  return message;
+function three(message, {append}) {
+  return append(message, {type: "3-was-here", id: "my-guid-3"});
 }
 
 Feature("Lamda functions", () => {
@@ -68,6 +64,7 @@ Feature("Lamda functions", () => {
           {
             type: "i-was-here",
             id: "my-guid",
+            occurredAt: msg.data[0].occurredAt,
             key: "event.some-name.perform.one"
           }
         ],
@@ -119,16 +116,19 @@ Feature("Lamda functions", () => {
           {
             type: "1-was-here",
             id: "my-guid-1",
+            occurredAt: msg.data[0].occurredAt,
             key: "event.the-coolest-event-ever.perform.one"
           },
           {
             type: "2-was-here",
             id: "my-guid-2",
+            occurredAt: msg.data[1].occurredAt,
             key: "event.the-coolest-event-ever.perform.two"
           },
           {
             type: "3-was-here",
             id: "my-guid-3",
+            occurredAt: msg.data[2].occurredAt,
             key: "event.the-coolest-event-ever.perform.three"
           }
         ],
@@ -193,16 +193,19 @@ Feature("Lamda functions", () => {
           {
             type: "1-was-here",
             id: "my-guid-1",
+            occurredAt: msg.data[0].occurredAt,
             key: "event.first.perform.one"
           },
           {
             type: "2-was-here",
             id: "my-guid-2",
+            occurredAt: msg.data[1].occurredAt,
             key: "event.first.event.second.perform.two"
           },
           {
             type: "3-was-here",
             id: "my-guid-3",
+            occurredAt: msg.data[2].occurredAt,
             key: "event.first.perform.three"
           }
         ],
