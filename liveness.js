@@ -12,7 +12,9 @@ function rabbitStatus() {
       if (!myConn) return reject(new Error(`Could not find rabbit connection for: ${config.HOSTNAME}`));
       resolve();
     });
-  }).then(() => 0).catch(() => 1);
+  })
+    .then(() => 0)
+    .catch(() => 1);
 }
 
 async function cli() {
