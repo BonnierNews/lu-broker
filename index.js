@@ -12,6 +12,7 @@ if (config.envName === "test")  {
 const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName} = require("./lib/broker");
 const bugsnag = require("bugsnag");
 const recipeRepo = require("./lib/recipe-repo");
+const liveness = require("./liveness");
 const noOp = () => {};
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
@@ -40,6 +41,7 @@ function handleMessageWrapper(fn) {
 
 module.exports = {
   start,
+  liveness,
   buildContext: context,
   testHelpers,
   publishCli
