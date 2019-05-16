@@ -1,5 +1,6 @@
 "use strict";
 
+let testHelpers;
 const config = require("exp-config");
 if (config.envName === "test")  {
   const fakeAmqp = require("exp-fake-amqplib");
@@ -7,6 +8,7 @@ if (config.envName === "test")  {
   proxyquire("exp-amqp-connection/bootstrap", {
     "amqplib/callback_api": fakeAmqp
   });
+  testHelpers = require("./lib/test-helpers");
 }
 
 const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName} = require("./lib/broker");
@@ -18,7 +20,6 @@ const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
-const testHelpers = require("./lib/test-helpers");
 const publishCli = require("./publish-cli");
 
 function start({recipes, lambdas, callback}) {

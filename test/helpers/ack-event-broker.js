@@ -12,9 +12,9 @@ broker.subscribe = (routingKeyOrKeys, queue, handler, cb) => {
       broker.emit("ack", message, meta, "ack");
       oldAck();
     };
-    notify.nack = () => {
+    notify.nack = (...args) => {
       broker.emit("nack", message, meta, "nack");
-      oldNack();
+      oldNack(...args);
     };
     oldHandler(message, meta, notify);
   };
