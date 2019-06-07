@@ -269,13 +269,13 @@ describe("recipes-repo validation", () => {
         recipesRepo.init([events[0], {...events[1], name: ".hej"}]);
       }.should.throw(
         Error,
-        'value: ".hej" detail: "name" with value ".hej" fails to match the required pattern: /^[a-z][-a-z.]*$/'
+        'value: ".hej" detail: "name" with value ".hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
       ));
       (function() {
         recipesRepo.init([events[0], {...events[1], name: "#hej"}]);
       }.should.throw(
         Error,
-        'value: "#hej" detail: "name" with value "#hej" fails to match the required pattern: /^[a-z][-a-z.]*$/'
+        'value: "#hej" detail: "name" with value "#hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
       ));
     });
   });
