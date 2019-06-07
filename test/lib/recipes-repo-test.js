@@ -1,32 +1,30 @@
 "use strict";
 
+const {route} = require("../../index");
 const recipesRepo = require("../../lib/recipe-repo");
 
 const passThru = (msg) => msg;
 
 describe("recipes-repo", () => {
   let repo;
-  const lambas = {
-    "event.baz.perform.one": passThru,
-    "event.baz.perform.two": passThru,
-    "event.baz.perform.three": passThru,
-    "event.bar.validate.one": passThru,
-    "event.bar.perform.two": passThru
-  };
   const events = [
     {
-      name: "baz",
       namespace: "event",
-      sequence: [".perform.one", ".perform.two", ".perform.three"]
+      name: "baz",
+      sequence: [route(".perform.one", passThru), route(".perform.two", passThru), route(".perform.three", passThru)]
     },
     {
-      name: "bar",
       namespace: "event",
-      sequence: [".validate.one", "event.baz.perform.one", ".perform.two"]
+      name: "bar",
+      sequence: [
+        route(".validate.one", passThru),
+        route("event.baz.perform.one", passThru),
+        route(".perform.two", passThru)
+      ]
     }
   ];
   before(() => {
-    repo = recipesRepo.init(events, lambas);
+    repo = recipesRepo.init(events);
   });
 
   it("should return empty if no events", () => {

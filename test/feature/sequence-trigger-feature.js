@@ -1,6 +1,6 @@
 "use strict";
 
-const {start} = require("../..");
+const {start, route} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 
 function handler(message, {append}) {
@@ -29,22 +29,17 @@ Feature("Lamda functions", () => {
   Scenario("Trigger a flow with one lambda from a known trigger key", () => {
     before(() => {
       crd.resetMock();
-      const lambdasMap = {
-        "event.some-name.perform.one": handler
-      };
       start({
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [".perform.one"]
+            sequence: [route(".perform.one", handler)]
           }
-        ],
-        lambdas: lambdasMap
+        ]
       });
     });
     let flowMessages;
-
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
     });
@@ -79,20 +74,14 @@ Feature("Lamda functions", () => {
   Scenario("Trigger a flow with three lambdas from a known trigger key", () => {
     before(() => {
       crd.resetMock();
-      const lambdasMap = {
-        "event.the-coolest-event-ever.perform.one": one,
-        "event.the-coolest-event-ever.perform.two": two,
-        "event.the-coolest-event-ever.perform.three": three
-      };
       start({
         recipes: [
           {
             namespace: "event",
             name: "the-coolest-event-ever",
-            sequence: [".perform.one", ".perform.two", ".perform.three"]
+            sequence: [route(".perform.one", one), route(".perform.two", two), route(".perform.three", three)]
           }
-        ],
-        lambdas: lambdasMap
+        ]
       });
     });
     let flowMessages;
@@ -143,25 +132,19 @@ Feature("Lamda functions", () => {
   Scenario("Trigger a flow which has lambdas from a another flow", () => {
     before(() => {
       crd.resetMock();
-      const lambdasMap = {
-        "event.first.perform.one": one,
-        "event.second.perform.two": two,
-        "event.first.perform.three": three
-      };
       start({
         recipes: [
           {
             namespace: "event",
             name: "first",
-            sequence: [".perform.one", "event.second.perform.two", ".perform.three"]
+            sequence: [route(".perform.one", one), route("event.second.perform.two"), route(".perform.three", three)]
           },
           {
             namespace: "event",
             name: "second",
-            sequence: [".perform.two"]
+            sequence: [route(".perform.two", two)]
           }
-        ],
-        lambdas: lambdasMap
+        ]
       });
     });
     let flowMessages;
