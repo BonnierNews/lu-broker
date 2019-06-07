@@ -16,7 +16,7 @@ describe("recipes-repo validation", () => {
     {
       name: "two",
       namespace: "event",
-      sequence: [route(".perform.second", passThru), route("event.one.perform.first", passThru)]
+      sequence: [route(".perform.second", passThru), route("event.one.perform.first")]
     }
   ];
 
@@ -29,19 +29,52 @@ describe("recipes-repo validation", () => {
   });
 
   describe("validate keys and lambdas", () => {
-    it.skip("should not allow borrowing from unknown key", () => {
+    it("should not allow borrowing from unknown key", () => {
       (function() {
         recipesRepo.init([
           events[0],
-          {...events[1], sequence: [...events[1].sequence, route("event.one.perform.three", passThru)]}
+          {...events[1], sequence: [...events[1].sequence, route("event.one.perform.three")]}
         ]);
-      }.should.throw(Error, /Not all lambdas exists in recipe sequence keys, invalid lambda: event.one.perform.three/));
+      }.should.throw(
+        Error,
+        /Error in 'event.two': borrowed key 'event.one.perform.three' does not exist in 'event.one'/
+      ));
     });
 
-    it("should require a fn for internal keys");
-    it("should not allow borrowing from unknown keys");
+    it("should not allow functions for borrowing", () => {
+      (function() {
+        recipesRepo.init([
+          events[0],
+          {...events[1], sequence: [events[1].sequence[0], route("event.one.perform.first", passThru)]}
+        ]);
+      }.should.throw(Error, /Handler function not allowed for borrowed key: 'event.one.perform.first' in 'event.two'/));
+    });
 
-    it("should return allow duplicates in sequence", () => {
+    it("should require a fn for internal keys", () => {
+      (function() {
+        recipesRepo.init([
+          {
+            namespace: "event",
+            name: "bax",
+            sequence: [route(".perform.one")]
+          }
+        ]);
+      }.should.throw(Error, /No function given for key '.perform.one' in 'event.bax'/));
+    });
+
+    it("should only allow functions for internal keys", () => {
+      (function() {
+        recipesRepo.init([
+          {
+            namespace: "event",
+            name: "bax",
+            sequence: [route(".perform.one", ".event.bar.hej")]
+          }
+        ]);
+      }.should.throw(Error, /Only functions are supported as handlers/));
+    });
+
+    it("should not allow duplicates in sequence", () => {
       (function() {
         recipesRepo.init([
           {
@@ -157,8 +190,8 @@ describe("recipes-repo validation", () => {
       allowedVerbs.forEach((verb) => {
         innerEvents[0].sequence.push(route(`.${verb}.anything`, passThru));
         innerEvents[0].sequence.push(route(`.optional.${verb}.anything`, passThru));
-        innerEvents[1].sequence.push(route(`event.one.${verb}.anything`, passThru));
-        innerEvents[1].sequence.push(route(`event.one.optional.${verb}.anything`, passThru));
+        innerEvents[1].sequence.push(route(`event.one.${verb}.anything`));
+        innerEvents[1].sequence.push(route(`event.one.optional.${verb}.anything`));
       });
 
       (function() {
@@ -213,12 +246,12 @@ describe("recipes-repo validation", () => {
           {
             namespace: "event",
             name: "one",
-            sequence: [route(".perform.first")]
+            sequence: [route(".perform.first", passThru)]
           },
           {
             namespace: "action",
             name: "two",
-            sequence: [route(".perform.second")]
+            sequence: [route(".perform.second", passThru)]
           }
         ]);
       }.should.not.throw(Error));

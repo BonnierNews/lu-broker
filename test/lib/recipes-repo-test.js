@@ -16,11 +16,7 @@ describe("recipes-repo", () => {
     {
       namespace: "event",
       name: "bar",
-      sequence: [
-        route(".validate.one", passThru),
-        route("event.baz.perform.one", passThru),
-        route(".perform.two", passThru)
-      ]
+      sequence: [route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru)]
     }
   ];
   before(() => {
@@ -101,6 +97,22 @@ describe("recipes-repo", () => {
 
     it("should find a fn for a borrowed key", () => {
       repo.handler("event.bar.event.baz.perform.one").should.eql(passThru);
+    });
+
+    it("should find a fn for a borrowed key even if defined before borrow", () => {
+      const otherRepo = recipesRepo.init([
+        {
+          namespace: "event",
+          name: "one",
+          sequence: [route("event.two.perform.two")]
+        },
+        {
+          namespace: "event",
+          name: "two",
+          sequence: [route(".perform.two", passThru)]
+        }
+      ]);
+      otherRepo.handler("event.one.event.two.perform.two").should.eql(passThru);
     });
   });
 });

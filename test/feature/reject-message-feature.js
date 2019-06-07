@@ -1,6 +1,6 @@
 "use strict";
 
-const {start} = require("../..");
+const {start, route} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
 
 function rejectHandler(message, context) {
@@ -19,18 +19,14 @@ Feature("Reject message", () => {
     before(() => {
       crd.resetMock();
       reject.resetMock();
-      const lambdasMap = {
-        "event.some-name.perform.one": rejectHandler
-      };
       start({
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [".perform.one"]
+            sequence: [route(".perform.one", rejectHandler)]
           }
-        ],
-        lambdas: lambdasMap
+        ]
       });
     });
     let rejectedMessages;
@@ -87,18 +83,14 @@ Feature("Reject message", () => {
     before(() => {
       crd.resetMock();
       reject.resetMock();
-      const lambdasMap = {
-        "event.some-name.perform.one": rejectHandler
-      };
       start({
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [".perform.one"]
+            sequence: [route(".perform.one", rejectHandler)]
           }
-        ],
-        lambdas: lambdasMap
+        ]
       });
     });
     let rejectedMessages;
