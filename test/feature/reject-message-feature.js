@@ -170,6 +170,7 @@ Feature("Reject message", () => {
     const passThru = (msg) => msg;
     const valid = () => Object({type: "other", id: "guid-2"});
     const eventer = () => Object({type: "event", id: "guid"});
+    const invalid = () => Object({baz: "event", foo: "guid"});
 
     before(() => {
       crd.resetMock();
@@ -185,6 +186,11 @@ Feature("Reject message", () => {
             namespace: "event",
             name: "failer2",
             sequence: [route(".perform.one", eventer)]
+          },
+          {
+            namespace: "event",
+            name: "failer3",
+            sequence: [route(".perform.one", invalid)]
           }
         ]
       });
@@ -230,6 +236,26 @@ Feature("Reject message", () => {
     And("the message should contain an error", () => {
       rejectedMessages[1].msg.errors[0].title.should.match(
         /Invalid response on routing key: event.failer2.perform.one/
+      );
+    });
+
+    When("we publish an order on yet another trigger key with a step that has invalid return message", async () => {
+      await crd.publishMessage("trigger.event.failer3", source);
+    });
+
+    Then("the messages should be rejected", () => {
+      rejectedMessages.length.should.eql(3);
+      rejectedMessages[2].key.should.eql("event.failer3.perform.one");
+    });
+
+    And("the reject queue should have a nacked message", () => {
+      reject.nackedMessages.should.have.length(3);
+      reject.nackedMessages[2].should.eql(rejectedMessages[2].msg);
+    });
+
+    And("the message should contain an error", () => {
+      rejectedMessages[2].msg.errors[0].title.should.match(
+        /Invalid response on routing key: event.failer3.perform.one response: {"baz":"event","foo":"guid"}/
       );
     });
   });
