@@ -23,6 +23,14 @@ function multi() {
   return [two(), three()];
 }
 
+function empty() {
+  return [];
+}
+
+function nuller() {
+  return;
+}
+
 Feature("Lamda functions", () => {
   const source = {
     type: "order",
@@ -83,7 +91,12 @@ Feature("Lamda functions", () => {
           {
             namespace: "event",
             name: "multi-test",
-            sequence: [route(".perform.one", handler), route(".perform.multi", multi)]
+            sequence: [
+              route(".perform.one", handler),
+              route(".perform.empty", empty),
+              route(".perform.null", nuller),
+              route(".perform.multi", multi)
+            ]
           }
         ]
       });
@@ -98,7 +111,7 @@ Feature("Lamda functions", () => {
     });
 
     And("the flow should be completed", () => {
-      flowMessages.length.should.eql(3);
+      flowMessages.length.should.eql(5);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.multi-test.processed");
       const {data} = msg;
