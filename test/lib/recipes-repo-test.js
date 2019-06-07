@@ -19,8 +19,11 @@ describe("recipes-repo", () => {
       sequence: [route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru)]
     }
   ];
+  const triggers = {
+    "trigger.some-value": passThru
+  };
   before(() => {
-    repo = recipesRepo.init(events);
+    repo = recipesRepo.init(events, triggers);
   });
 
   it("should return empty if no events", () => {
@@ -65,8 +68,13 @@ describe("recipes-repo", () => {
       nullRepo.triggerKeys().should.eql([]);
     });
 
+    it("should return only triggers if no events", () => {
+      const nullRepo = recipesRepo.init([], {"trigger.baz": passThru});
+      nullRepo.triggerKeys().should.eql(["trigger.baz"]);
+    });
+
     it("should return each event-name as key", () => {
-      repo.triggerKeys().should.eql(["trigger.event.baz", "trigger.event.bar"]);
+      repo.triggerKeys().should.eql(["trigger.some-value", "trigger.event.baz", "trigger.event.bar"]);
     });
   });
 

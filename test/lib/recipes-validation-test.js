@@ -28,7 +28,7 @@ describe("recipes-repo validation", () => {
     });
   });
 
-  describe("validate keys and lambdas", () => {
+  describe("validate event keys", () => {
     it("should not allow borrowing from unknown key", () => {
       (function() {
         recipesRepo.init([
@@ -132,6 +132,32 @@ describe("recipes-repo validation", () => {
           }
         ]);
       }.should.throw(Error, /.optional.perform/));
+    });
+  });
+
+  describe("validate triggers", () => {
+    it("should only allow functions for triggers", () => {
+      (function() {
+        recipesRepo.init([events[0]], {
+          "trigger.baz": "hej.hopp"
+        });
+      }.should.throw(Error, /Only functions are supported as triggers/));
+    });
+
+    it("should only allow more than 2 parts in triggers", () => {
+      (function() {
+        recipesRepo.init([events[0]], {
+          "trigger.baz.bar": passThru
+        });
+      }.should.throw(Error, /Invalid format for trigger.baz.bar/));
+    });
+
+    it("should only allow to start with trigger", () => {
+      (function() {
+        recipesRepo.init([events[0]], {
+          "triggerzzz.baz": passThru
+        });
+      }.should.throw(Error, /Invalid format for triggerzzz.baz/));
     });
   });
 

@@ -22,9 +22,9 @@ const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
-function start({recipes, callback}) {
+function start({recipes, triggers, callback}) {
   callback = callback || noOp;
-  const recipeMap = recipeRepo.init(recipes);
+  const recipeMap = recipeRepo.init(recipes, triggers);
   const handleFlowMessage = buildFlowHandler(recipeMap);
   const handleTriggerMessage = buildTriggerHandler(recipeMap);
   const handleRejectMessage = buildRejectHandler();
