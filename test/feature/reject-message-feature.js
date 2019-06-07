@@ -165,4 +165,72 @@ Feature("Reject message", () => {
       rejectedMessages[0].meta.properties.should.have.property("replyTo", "event.some-name.perform.one.processed");
     });
   });
+
+  Scenario("Rejecting invalid messages", () => {
+    const passThru = (msg) => msg;
+    const valid = () => Object({type: "other", id: "guid-2"});
+    const eventer = () => Object({type: "event", id: "guid"});
+
+    before(() => {
+      crd.resetMock();
+      reject.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "failer",
+            sequence: [route(".perform.valid", valid), route(".perform.one", passThru)]
+          },
+          {
+            namespace: "event",
+            name: "failer2",
+            sequence: [route(".perform.one", eventer)]
+          }
+        ]
+      });
+    });
+    let rejectedMessages;
+
+    Given("we are listening for messages on the event namespace", () => {
+      rejectedMessages = reject.subscribe("#");
+    });
+
+    When("we publish an order on a trigger key with an invalid step", async () => {
+      await crd.publishMessage("trigger.event.failer", source);
+    });
+
+    Then("the messages should be rejected", () => {
+      rejectedMessages.length.should.eql(1);
+      rejectedMessages[0].key.should.eql("event.failer.perform.one");
+    });
+
+    And("the reject queue should have a nacked message", () => {
+      reject.nackedMessages.should.have.length(1);
+      reject.nackedMessages[0].should.eql(rejectedMessages[0].msg);
+    });
+
+    And("the message should contain an error", () => {
+      rejectedMessages[0].msg.errors[0].title.should.match(/Invalid response on routing key: event.failer.perform.one/);
+    });
+
+    When("we publish an order on another trigger key with an invalid step", async () => {
+      await crd.publishMessage("trigger.event.failer2", source);
+    });
+
+    Then("the messages should be rejected", () => {
+      rejectedMessages.length.should.eql(2);
+      rejectedMessages[1].key.should.eql("event.failer2.perform.one");
+    });
+
+    And("the reject queue should have a nacked message", () => {
+      reject.nackedMessages.should.have.length(2);
+      reject.nackedMessages[1].should.eql(rejectedMessages[1].msg);
+    });
+
+    And("the message should contain an error", () => {
+      rejectedMessages[1].msg.errors[0].title.should.match(
+        /Invalid response on routing key: event.failer2.perform.one/
+      );
+    });
+  });
 });
