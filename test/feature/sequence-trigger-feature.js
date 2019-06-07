@@ -3,20 +3,24 @@
 const {start, route} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 
-function handler(message, {append}) {
-  return append(message, {type: "i-was-here", id: "my-guid"});
+function handler() {
+  return {type: "i-was-here", id: "my-guid"};
 }
 
-function one(message, {append}) {
-  return append(message, {type: "1-was-here", id: "my-guid-1"});
+function one() {
+  return {type: "1-was-here", id: "my-guid-1"};
 }
 
-function two(message, {append}) {
-  return append(message, {type: "2-was-here", id: "my-guid-2"});
+function two() {
+  return {type: "2-was-here", id: "my-guid-2"};
 }
 
-function three(message, {append}) {
-  return append(message, {type: "3-was-here", id: "my-guid-3"});
+function three() {
+  return {type: "3-was-here", id: "my-guid-3"};
+}
+
+function multi() {
+  return [two(), three()];
 }
 
 Feature("Lamda functions", () => {
@@ -68,6 +72,56 @@ Feature("Lamda functions", () => {
           correlationId: "some-correlation-id"
         }
       });
+    });
+  });
+
+  Scenario("Trigger a flow with lambdas that returns arrays from a known trigger key", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "multi-test",
+            sequence: [route(".perform.one", handler), route(".perform.multi", multi)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.event.multi-test", source);
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(3);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.multi-test.processed");
+      const {data} = msg;
+      data.should.eql([
+        {
+          type: "i-was-here",
+          id: "my-guid",
+          occurredAt: msg.data[0].occurredAt,
+          key: "event.multi-test.perform.one"
+        },
+        {
+          type: "2-was-here",
+          id: "my-guid-2",
+          occurredAt: msg.data[1].occurredAt,
+          key: "event.multi-test.perform.multi"
+        },
+        {
+          type: "3-was-here",
+          id: "my-guid-3",
+          occurredAt: msg.data[1].occurredAt,
+          key: "event.multi-test.perform.multi"
+        }
+      ]);
     });
   });
 
