@@ -2,12 +2,21 @@
 
 let testHelpers;
 const config = require("exp-config");
-if (config.envName === "test") {
+const assert = require("assert");
+const {logger} = require("lu-logger");
+
+const brokerBackend = config.brokerBackend || config.envName === "test" ? "fake-rabbitmq" : "rabbitmq";
+const allowedBrokerBackends = ["fake-rabbitmq", "rabbitmq"];
+assert(
+  allowedBrokerBackends.includes(brokerBackend),
+  `Bad configuration ${brokerBackend} should be one of ${allowedBrokerBackends.join(",")}`
+);
+
+if (brokerBackend === "fake-rabbitmq") {
   const fakeAmqp = require("exp-fake-amqplib");
-  const proxyquire = require("proxyquire");
-  proxyquire("exp-amqp-connection/bootstrap", {
-    "amqplib/callback_api": fakeAmqp
-  });
+  const amqp = require("amqplib/callback_api");
+  amqp.connect = fakeAmqp.connect;
+
   testHelpers = require("./lib/test-helpers");
 }
 
@@ -23,6 +32,7 @@ const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
 function start({recipes, triggers, callback}) {
+  logger.info(`Using ${brokerBackend} as lu-broker backend`);
   callback = callback || noOp;
   const recipeMap = recipeRepo.init(recipes, triggers);
   const handleFlowMessage = buildFlowHandler(recipeMap);

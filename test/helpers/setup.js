@@ -21,9 +21,3 @@ chai.config.includeStack = true;
 Object.assign(global, {
   should: chai.should()
 });
-
-const fakeAmqp = require("exp-fake-amqplib");
-const proxyquire = require("proxyquire");
-proxyquire("exp-amqp-connection/bootstrap", {
-  "amqplib/callback_api": fakeAmqp
-});
