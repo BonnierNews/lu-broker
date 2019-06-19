@@ -45,5 +45,5 @@ module.exports = {
   liveness,
   buildContext: context,
   publishCli,
-  testHelpers: require("./lib/test-helpers")
+  testHelpers: brokerBackend === "fake-rabbitmq" ? require("./lib/test-helpers") : null
 };
