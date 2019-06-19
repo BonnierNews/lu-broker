@@ -5,13 +5,18 @@ const httpClient = require("../../lib/http-client");
 
 describe("http-client, asserted", () => {
   const correlationId = "http-test";
-  const http = httpClient({meta: {correlationId}});
+  const routingKey = "some.cool.routing-key";
+  const http = httpClient({meta: {correlationId, routingKey}});
 
   it("should do asserted get-requests", async () => {
     fakeApi
       .get("/some/path")
       .matchHeader("correlation-id", (val) => {
         val.should.eql(correlationId);
+        return val;
+      })
+      .matchHeader("x-debug-meta-routing-key", (val) => {
+        val.should.eql(routingKey);
         return val;
       })
       .reply(200, {ok: true});
@@ -24,6 +29,10 @@ describe("http-client, asserted", () => {
       .get("/some/path")
       .matchHeader("correlation-id", (val) => {
         val.should.eql(correlationId);
+        return val;
+      })
+      .matchHeader("x-debug-meta-routing-key", (val) => {
+        val.should.eql(routingKey);
         return val;
       })
       .reply(200, {ok: true});
@@ -41,6 +50,10 @@ describe("http-client, asserted", () => {
           val.should.eql(correlationId);
           return val;
         })
+        .matchHeader("x-debug-meta-routing-key", (val) => {
+          val.should.eql(routingKey);
+          return val;
+        })
         .reply(200, {ok: true});
       const result = await http.asserted[method.toLowerCase()]({path: "/some/path", body: {correlationId}});
       result.should.eql({ok: true});
@@ -53,6 +66,10 @@ describe("http-client, asserted", () => {
       })
         .matchHeader("correlation-id", (val) => {
           val.should.eql(correlationId);
+          return val;
+        })
+        .matchHeader("x-debug-meta-routing-key", (val) => {
+          val.should.eql(routingKey);
           return val;
         })
         .reply(200, {ok: true});
