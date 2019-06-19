@@ -1,26 +1,9 @@
 "use strict";
 
-let testHelpers;
 const config = require("exp-config");
-const assert = require("assert");
 const {logger} = require("lu-logger");
 
-const brokerBackend = config.brokerBackend || config.envName === "test" ? "fake-rabbitmq" : "rabbitmq";
-const allowedBrokerBackends = ["fake-rabbitmq", "rabbitmq"];
-assert(
-  allowedBrokerBackends.includes(brokerBackend),
-  `Bad configuration ${brokerBackend} should be one of ${allowedBrokerBackends.join(",")}`
-);
-
-if (brokerBackend === "fake-rabbitmq") {
-  const fakeAmqp = require("exp-fake-amqplib");
-  const amqp = require("amqplib/callback_api");
-  amqp.connect = fakeAmqp.connect;
-
-  testHelpers = require("./lib/test-helpers");
-}
-
-const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName} = require("./lib/broker");
+const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName, brokerBackend} = require("./lib/broker");
 const bugsnag = require("bugsnag");
 const recipeRepo = require("./lib/recipe-repo");
 const liveness = require("./liveness");
@@ -61,6 +44,6 @@ module.exports = {
   route,
   liveness,
   buildContext: context,
-  testHelpers,
-  publishCli
+  publishCli,
+  testHelpers: require("./lib/test-helpers")
 };
