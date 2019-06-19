@@ -7,7 +7,7 @@
     "es6": true
   },
   "extends": ["eslint:recommended"],
-  "plugins": ["prettier"],
+  "plugins": ["prettier", "json"],
   "rules": {
     "prettier/prettier": "error",
     "arrow-parens": 2,
@@ -70,7 +70,6 @@
     "prefer-arrow-callback": 2,
     "prefer-const": ["error", {"destructuring": "all"}],
     "prefer-template": 1,
-    "semi-spacing": [1, {"before": false, "after": true}],
     "space-before-blocks": 1,
     "space-before-function-paren": [1, {"anonymous": "never", "named": "never"}],
     "space-infix-ops": 1,
