@@ -24,6 +24,16 @@ Feature("Triggers", () => {
       }
     };
   }
+
+  function triggerWithCorrelationId() {
+    return {
+      type: "trigger",
+      id: "event.some-name",
+      source,
+      correlationId: "some-other-correlation-id"
+    };
+  }
+
   Scenario("Trigger a flow with a trigger message", () => {
     before(() => {
       crd.resetMock();
@@ -67,6 +77,55 @@ Feature("Triggers", () => {
         source,
         meta: {
           correlationId: "some-correlation-id"
+        }
+      });
+    });
+  });
+
+  Scenario("Trigger a flow with a parent correlation id", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        triggers: {
+          "trigger.some-other-generic-name": triggerWithCorrelationId
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-other-generic-name", source);
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(2);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.some-name.processed");
+      msg.should.eql({
+        type: "event",
+        id: msg.id,
+        data: [
+          {
+            type: "i-was-here",
+            id: "my-guid",
+            occurredAt: msg.data[0].occurredAt,
+            key: "event.some-name.perform.one"
+          }
+        ],
+        source,
+        meta: {
+          correlationId: "some-other-correlation-id",
+          parentCorrelationId: "some-correlation-id"
         }
       });
     });
