@@ -14,12 +14,12 @@ const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
-function start({recipes, triggers, callback}) {
+function start({recipes, triggers, useParentCorrelationId, callback}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
   callback = callback || noOp;
   const recipeMap = recipeRepo.init(recipes, triggers);
   const handleFlowMessage = buildFlowHandler(recipeMap);
-  const handleTriggerMessage = buildTriggerHandler(recipeMap);
+  const handleTriggerMessage = buildTriggerHandler(recipeMap, useParentCorrelationId);
   const handleRejectMessage = buildRejectHandler();
   crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage), callback);
   crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage), callback);
