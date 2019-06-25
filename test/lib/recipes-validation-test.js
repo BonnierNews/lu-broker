@@ -264,7 +264,7 @@ describe("recipes-repo validation", () => {
     it("should not allow unknown namespaces", () => {
       (function() {
         recipesRepo.init([events[0], {...events[1], namespace: "foobar"}]);
-      }.should.throw(Error, 'value: "foobar" detail: "namespace" must be one of [event, action]'));
+      }.should.throw(Error, 'value: "foobar" detail: "namespace" must be one of [event, action, sequence]'));
     });
     it("should allow known namespaces", () => {
       (function() {
