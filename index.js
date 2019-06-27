@@ -1,7 +1,6 @@
 "use strict";
 
 const config = require("exp-config");
-const metricsServer = require("./lib/metrics-server");
 const {logger} = require("lu-logger");
 
 const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName, brokerBackend} = require("./lib/broker");
@@ -16,7 +15,7 @@ const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
 if (!config.disableMetricsServer) {
-  metricsServer.start();
+  require("./lib/metrics-server");
 }
 
 function start({recipes, triggers, useParentCorrelationId, callback}) {
