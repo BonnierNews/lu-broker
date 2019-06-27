@@ -1677,6 +1677,13 @@ prom-client@^10.2.2:
   dependencies:
     tdigest "^0.1.1"
 
+prom-client@^11.5.2:
+  version "11.5.2"
+  resolved "https://registry.yarnpkg.com/prom-client/-/prom-client-11.5.2.tgz#efc721452158a1a03331c0796dd2c558c40926d0"
+  integrity sha512-moMHqs3Z1cW1vTCvZx9Edyy96GiVBLgOtPk1fif4EyDC9Xbn2tcv090TgxZocHh5XsK3H/kfKaYY4h5MMhGrsA==
+  dependencies:
+    tdigest "^0.1.1"
+
 promise@7.x:
   version "7.3.1"
   resolved "https://registry.yarnpkg.com/promise/-/promise-7.3.1.tgz#064b72602b18f90f29192b8b1bc418ffd1ebd3bf"
@@ -2066,10 +2073,10 @@ superagent@^3.8.3:
     qs "^6.5.1"
     readable-stream "^2.3.5"
 
-supertest@^3.3.0:
-  version "3.4.2"
-  resolved "https://registry.yarnpkg.com/supertest/-/supertest-3.4.2.tgz#bad7de2e43d60d27c8caeb8ab34a67c8a5f71aad"
-  integrity sha512-WZWbwceHUo2P36RoEIdXvmqfs47idNNZjCuJOqDz6rvtkk8ym56aU5oglORCpPeXGxT7l9rkJ41+O1lffQXYSA==
+supertest@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/supertest/-/supertest-4.0.2.tgz#c2234dbdd6dc79b6f15b99c8d6577b90e4ce3f36"
+  integrity sha512-1BAbvrOZsGA3YTCWqbmh14L0YEq0EGICX/nBnfkfVJn7SrxQV1I3pMYjSzG9y/7ZU2V9dWqyqk2POwxlb09duQ==
   dependencies:
     methods "^1.1.2"
     superagent "^3.8.3"
