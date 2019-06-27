@@ -14,12 +14,11 @@ const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
-if (!config.disableMetricsServer) {
-  require("./lib/metrics-server");
-}
-
 function start({recipes, triggers, useParentCorrelationId, callback}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
+  if (!config.disableMetricsServer) {
+    require("./lib/metrics-server");
+  }
   callback = callback || noOp;
   const recipeMap = recipeRepo.init(recipes, triggers);
   const handleFlowMessage = buildFlowHandler(recipeMap);
