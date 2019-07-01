@@ -14,7 +14,7 @@
   "dependencies": {
     "amqplib": "^0.5.3",
     "bugsnag": "^2.3.1",
-    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#v2.9.0",
+    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#v3.0.0",
     "exp-config": "^2.0.1",
     "joi": "^14.3.1",
     "lu-logger": "github:BonnierNews/lu-logger#v2.1.5",
