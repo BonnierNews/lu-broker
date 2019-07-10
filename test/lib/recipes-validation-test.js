@@ -305,4 +305,12 @@ describe("recipes-repo validation", () => {
       ));
     });
   });
+
+  describe("validate unrecoverable keys", () => {
+    it("should only allow *", () => {
+      (function() {
+        recipesRepo.init([{...events[1], unrecoverable: [{baz: () => {}}]}]);
+      }.should.throw(Error, /Invalid key in unrecoverable: baz in event.two, allowed are '*'/));
+    });
+  });
 });
