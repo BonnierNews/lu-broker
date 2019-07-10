@@ -4,6 +4,7 @@ const {route} = require("../../index");
 const recipesRepo = require("../../lib/recipe-repo");
 
 const passThru = (msg) => msg;
+const unrecoverable = (msg) => msg;
 
 describe("recipes-repo", () => {
   let repo;
@@ -17,6 +18,12 @@ describe("recipes-repo", () => {
       namespace: "event",
       name: "bar",
       sequence: [route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru)]
+    },
+    {
+      namespace: "event",
+      name: "unrecoverable",
+      sequence: [route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru)],
+      unrecoverable: [route("*", unrecoverable)]
     }
   ];
   const triggers = {
@@ -58,7 +65,7 @@ describe("recipes-repo", () => {
     });
 
     it("should return each event-name as key", () => {
-      repo.keys().should.eql(["event.baz.#", "event.bar.#"]);
+      repo.keys().should.eql(["event.baz.#", "event.bar.#", "event.unrecoverable.#"]);
     });
   });
 
@@ -74,7 +81,9 @@ describe("recipes-repo", () => {
     });
 
     it("should return each event-name as key", () => {
-      repo.triggerKeys().should.eql(["trigger.some-value", "trigger.event.baz", "trigger.event.bar"]);
+      repo
+        .triggerKeys()
+        .should.eql(["trigger.some-value", "trigger.event.baz", "trigger.event.bar", "trigger.event.unrecoverable"]);
     });
   });
 
@@ -121,6 +130,21 @@ describe("recipes-repo", () => {
         }
       ]);
       otherRepo.handler("event.one.event.two.perform.two").should.eql(passThru);
+    });
+  });
+
+  describe("getUnrecoverableHandler", () => {
+    it("should find a fn for a key", () => {
+      repo.unrecoverableHandler("event.unrecoverable.validate.one").should.eql(unrecoverable);
+      repo.unrecoverableHandler("event.unrecoverable.perform.two").should.eql(unrecoverable);
+    });
+
+    it("should not find a fn for an unknown key", () => {
+      should.not.exist(repo.unrecoverableHandler("event.unrecoverable.epic-key"));
+    });
+
+    it("should find a fn for a borrowed key", () => {
+      repo.unrecoverableHandler("event.unrecoverable.event.baz.perform.one").should.eql(unrecoverable);
     });
   });
 });
