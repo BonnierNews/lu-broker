@@ -85,6 +85,7 @@ Feature("Reject message as unrecoverable", () => {
     const unrecoverable = [];
     function handleUnrecoverable(error, message, context) {
       unrecoverable.push({error, message, routingKey: context.routingKey});
+      return {type: "some-type", id: "some-id"};
     }
 
     before(() => {
@@ -103,6 +104,11 @@ Feature("Reject message as unrecoverable", () => {
     });
     Given("we have a unrecoverable handler", () => {});
 
+    let processedMessages;
+    And("we are listening for processed unrecoverable messages", () => {
+      processedMessages = crd.subscribe("event.some-name.perform.one.unrecoverable.processed");
+    });
+
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
     });
@@ -118,6 +124,21 @@ Feature("Reject message as unrecoverable", () => {
 
     And("the error should be passed to the handler", () => {
       unrecoverable[0].error.message.should.eql("needs to be handled manually!");
+    });
+
+    And("there should be a processed message", () => {
+      processedMessages.length.should.eql(1);
+    });
+    And("the processed message should hold data from the unrecoverable handler", () => {
+      processedMessages[0].msg.data
+        .map(({id, key, type}) => Object({type, key, id}))
+        .should.eql([
+          {
+            id: "some-id",
+            key: "event.some-name.perform.one.unrecoverable",
+            type: "some-type"
+          }
+        ]);
     });
   });
 
