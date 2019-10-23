@@ -131,6 +131,149 @@ Feature("Triggers", () => {
     });
   });
 
+  Scenario("Trigger a flow with a sequence generic parent correlation id", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)],
+            useParentCorrelationId: true
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.event.some-name", source);
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(2);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.some-name.processed");
+      const newCorrId = msg.meta.correlationId.split(":")[1];
+      newCorrId.should.be.a.uuid("v4");
+      msg.should.eql({
+        type: "event",
+        id: msg.id,
+        data: [
+          {
+            type: "i-was-here",
+            id: "my-guid",
+            occurredAt: msg.data[0].occurredAt,
+            key: "event.some-name.perform.one"
+          }
+        ],
+        source,
+        meta: {
+          correlationId: `some-correlation-id:${newCorrId}`,
+          parentCorrelationId: "some-correlation-id"
+        }
+      });
+    });
+  });
+
+  Scenario("Trigger a flow with a global use generic parent correlation id", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ],
+        useParentCorrelationId: true
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.event.some-name", source);
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(2);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.some-name.processed");
+      const newCorrId = msg.meta.correlationId.split(":")[1];
+      newCorrId.should.be.a.uuid("v4");
+      msg.should.eql({
+        type: "event",
+        id: msg.id,
+        data: [
+          {
+            type: "i-was-here",
+            id: "my-guid",
+            occurredAt: msg.data[0].occurredAt,
+            key: "event.some-name.perform.one"
+          }
+        ],
+        source,
+        meta: {
+          correlationId: `some-correlation-id:${newCorrId}`,
+          parentCorrelationId: "some-correlation-id"
+        }
+      });
+    });
+  });
+
+  Scenario("Trigger a flow without a generic parent correlation id", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.event.some-name", source);
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(2);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.some-name.processed");
+      msg.should.eql({
+        type: "event",
+        id: msg.id,
+        data: [
+          {
+            type: "i-was-here",
+            id: "my-guid",
+            occurredAt: msg.data[0].occurredAt,
+            key: "event.some-name.perform.one"
+          }
+        ],
+        source,
+        meta: {
+          correlationId: `some-correlation-id`
+        }
+      });
+    });
+  });
+
   Scenario("Trigger a flow by returning a trigger message from handler", () => {
     before(() => {
       crd.resetMock();
