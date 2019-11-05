@@ -134,6 +134,9 @@ describe("recipes-repo", () => {
   });
 
   describe("getUnrecoverableHandler", () => {
+    before(() => {
+      repo = recipesRepo.init(events, triggers);
+    });
     it("should find a fn for a key", () => {
       repo.unrecoverableHandler("event.unrecoverable.validate.one").should.eql(unrecoverable);
       repo.unrecoverableHandler("event.unrecoverable.perform.two").should.eql(unrecoverable);

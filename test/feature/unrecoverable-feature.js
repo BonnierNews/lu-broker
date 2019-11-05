@@ -224,4 +224,90 @@ Feature("Reject message as unrecoverable", () => {
       crd.nackedMessages[0].should.eql(unrecoverable[0].message);
     });
   });
+
+  Scenario("Two recipes with unrecoverable handler", () => {
+    let unrecoverable = [];
+    function handleUnrecoverable(error, message, context) {
+      unrecoverable.push({error, message, routingKey: context.routingKey});
+      return {type: "some-type", id: "some-id"};
+    }
+    function handleUnrecoverable2(error, message, context) {
+      unrecoverable.push({error, message, routingKey: context.routingKey});
+      return {type: "some-type-2", id: "some-id-2"};
+    }
+
+    before(() => {
+      crd.resetMock();
+      reject.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name-1",
+            sequence: [route(".perform.one", rejectHandler)],
+            unrecoverable: [route("*", handleUnrecoverable)]
+          },
+          {
+            namespace: "event",
+            name: "some-name-2",
+            sequence: [route(".perform.one", rejectHandler)],
+            unrecoverable: [route("*", handleUnrecoverable2)]
+          }
+        ]
+      });
+    });
+    Given("we have a unrecoverable handler", () => {});
+
+    let processedMessages;
+    And("we are listening for processed unrecoverable messages on first event", () => {
+      processedMessages = crd.subscribe("event.some-name-1.perform.one.unrecoverable.processed");
+    });
+
+    When("we publish an order on a trigger key for first event", async () => {
+      await crd.publishMessage("trigger.event.some-name-1", source);
+    });
+
+    Then("the messages should be unrecoverable", () => {
+      unrecoverable.length.should.eql(1);
+      unrecoverable[0].routingKey.should.eql("event.some-name-1.perform.one");
+    });
+
+    And("the processed message should hold data from the unrecoverable handler", () => {
+      processedMessages[0].msg.data
+        .map(({id, key, type}) => Object({type, key, id}))
+        .should.eql([
+          {
+            id: "some-id",
+            key: "event.some-name-1.perform.one.unrecoverable",
+            type: "some-type"
+          }
+        ]);
+    });
+
+    And("we are listening for processed unrecoverable messages on second event", () => {
+      processedMessages = null;
+      processedMessages = crd.subscribe("event.some-name-2.perform.one.unrecoverable.processed");
+    });
+    When("we publish an order on a trigger key for second event", async () => {
+      unrecoverable = [];
+      await crd.publishMessage("trigger.event.some-name-2", source);
+    });
+
+    Then("the messages should be unrecoverable", () => {
+      unrecoverable.length.should.eql(1);
+      unrecoverable[0].routingKey.should.eql("event.some-name-2.perform.one");
+    });
+
+    And("the processed message should hold data from the unrecoverable handler", () => {
+      processedMessages[0].msg.data
+        .map(({id, key, type}) => Object({type, key, id}))
+        .should.eql([
+          {
+            id: "some-id-2",
+            key: "event.some-name-2.perform.one.unrecoverable",
+            type: "some-type-2"
+          }
+        ]);
+    });
+  });
 });
