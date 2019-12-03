@@ -26,7 +26,7 @@
     "chai": "^3.5.0",
     "chai-exclude": "^1.0.12",
     "chai-uuid": "^1.0.6",
-    "depcheck": "^0.6.9",
+    "depcheck": "^0.9.1",
     "eslint": "^4.19.1",
     "eslint-plugin-json": "^1.4.0",
     "eslint-plugin-prettier": "^3.0.1",
