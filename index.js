@@ -3,13 +3,24 @@
 const config = require("exp-config");
 const {logger} = require("lu-logger");
 
-const {crd, reject, lambdasQueueName, triggersQueueName, rejectQueueName, brokerBackend} = require("./lib/broker");
+const {
+  crd,
+  reject,
+  internal,
+  internalPrefix,
+  internalQueueName,
+  lambdasQueueName,
+  triggersQueueName,
+  rejectQueueName,
+  brokerBackend
+} = require("./lib/broker");
 const bugsnag = require("bugsnag");
 const recipeRepo = require("./lib/recipe-repo");
 const liveness = require("./liveness");
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildRejectHandler = require("./lib/handle-rejected-message");
+const internalMessagesHandler = require("./lib/handle-internal-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
@@ -25,6 +36,7 @@ function start({recipes, triggers, useParentCorrelationId}) {
   crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage));
   crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe(recipeMap.keys(), rejectQueueName, handleMessageWrapper(handleRejectMessage));
+  internal.subscribe(`${internalPrefix}.#`, internalQueueName, handleMessageWrapper(internalMessagesHandler));
 }
 
 function handleMessageWrapper(fn) {
