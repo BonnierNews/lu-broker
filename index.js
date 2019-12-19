@@ -36,7 +36,11 @@ function start({recipes, triggers, useParentCorrelationId}) {
   crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage));
   crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe(recipeMap.keys(), rejectQueueName, handleMessageWrapper(handleRejectMessage));
-  internal.subscribe(`${internalPrefix}.#`, internalQueueName, handleMessageWrapper(internalMessagesHandler));
+  internal.subscribe(
+    [`${internalPrefix}.#`].concat(recipeMap.processedKeys()),
+    internalQueueName,
+    handleMessageWrapper(internalMessagesHandler)
+  );
 }
 
 function handleMessageWrapper(fn) {
