@@ -21,6 +21,17 @@ function trigger() {
   };
 }
 
+function subTrigger() {
+  return {
+    type: "trigger",
+    id: "event.grand-child",
+    source,
+    meta: {
+      correlationId: "some-correlation-id"
+    }
+  };
+}
+
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -124,6 +135,75 @@ Feature("Spawn flows with triggers", () => {
 
     And("the handlers should have been triggered in correct order", () => {
       result.should.eql([0, 1, 2]);
+    });
+  });
+
+  Scenario("Trigger a flow that triggers a flow by returning a trigger message from handler", () => {
+    const result = [];
+    function addWithDelay(i, delay = 0) {
+      return async () => {
+        await sleep(delay);
+        result.push(i);
+        return {type: "baz", id: `my-guid-${i}`};
+      };
+    }
+
+    before(() => {
+      crd.resetMock();
+      brokerServer.start();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [
+              route(".perform.first", addWithDelay(0, 1)),
+              route(".perform.one", trigger),
+              route(".perform.two", addWithDelay(2, 1))
+            ]
+          },
+          {
+            namespace: "event",
+            name: "some-sub-name",
+            sequence: [route(".perform.one", subTrigger), route(".perform.two", addWithDelay(3, 1))]
+          },
+          {
+            namespace: "event",
+            name: "grand-child",
+            sequence: [route(".perform.one", addWithDelay(4, 2))]
+          }
+        ]
+      });
+    });
+
+    after(() => {
+      brokerServer.reset();
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.some-name.#");
+    });
+
+    When("we publish an order on the other events a trigger key", async () => {
+      await crd.publishMessage("trigger.event.some-name", source);
+      await new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(4);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.some-name.processed");
+      msg.data
+        .map(({type, id}) => ({type, id}))
+        .should.eql([
+          {type: "baz", id: "my-guid-0"},
+          {type: "trigger", id: "event.some-sub-name"},
+          {type: "baz", id: "my-guid-2"}
+        ]);
+    });
+
+    Then("the handlers should have been triggered in correct order", () => {
+      result.should.eql([0, 4, 3, 2]);
     });
   });
 });
