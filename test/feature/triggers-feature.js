@@ -131,7 +131,7 @@ Feature("Triggers", () => {
     });
   });
 
-  Scenario("Trigger a flow with a sequence generic parent correlation id", () => {
+  Scenario("Trigger a flow with a sequence generic parent correlation id and notifyProcessed", () => {
     before(() => {
       crd.resetMock();
       start({
@@ -151,7 +151,7 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishMessage("trigger.event.some-name", source);
+      await crd.publishMessage("trigger.event.some-name", {...source, meta: {...source.meta, notifyProcessed: true}});
     });
 
     And("the flow should be completed", () => {
@@ -171,10 +171,11 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: `some-correlation-id:${newCorrId}`,
-          parentCorrelationId: "some-correlation-id"
+          parentCorrelationId: "some-correlation-id",
+          notifyProcessed: true
         }
       });
     });
@@ -220,7 +221,7 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: `some-correlation-id:${newCorrId}`,
           parentCorrelationId: "some-correlation-id"
@@ -266,7 +267,7 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: `some-correlation-id`
         }
@@ -294,9 +295,11 @@ Feature("Triggers", () => {
     });
     let flowMessages;
     let secondFlowMessages;
+    let internalMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-other-name.#");
       secondFlowMessages = crd.subscribe("event.some-name.#");
+      internalMessages = crd.subscribe("#.internal.#");
     });
 
     When("we publish an order on the other events a trigger key", async () => {
@@ -305,7 +308,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const {msg, key} = flowMessages[1];
       key.should.eql("event.some-other-name.processed");
       msg.should.eql({
         type: "event",
@@ -324,6 +327,25 @@ Feature("Triggers", () => {
         }
       });
     });
+
+    And("there should be an internal message", () => {
+      internalMessages.length.should.eql(1);
+      const {msg, key} = internalMessages.pop();
+      key.should.eql("lu-broker.internal.trigger-message");
+      msg.should.eql({
+        id: "trigger.event.some-name",
+        type: "internal-message",
+        attributes: {
+          source,
+          responseKey: "event.some-other-name.processed",
+          message: flowMessages[flowMessages.length - 1].msg
+        },
+        meta: {
+          correlationId: source.meta.correlationId
+        }
+      });
+    });
+
     And("the other flow should triggered and be completed", () => {
       secondFlowMessages.length.should.eql(2);
       const {msg, key} = secondFlowMessages.pop();
@@ -339,9 +361,11 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
-          correlationId: "some-correlation-id"
+          correlationId: "some-correlation-id:0",
+          notifyProcessed: true,
+          parentCorrelationId: "some-correlation-id"
         }
       });
     });
