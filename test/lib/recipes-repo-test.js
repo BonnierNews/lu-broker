@@ -87,6 +87,21 @@ describe("recipes-repo", () => {
     });
   });
 
+  describe("processedKeys", () => {
+    it("should return empty if no events", () => {
+      const nullRepo = recipesRepo.init([]);
+      nullRepo.processedKeys().should.eql([]);
+    });
+
+    it("should return nothing if no events", () => {
+      const nullRepo = recipesRepo.init([], {"trigger.baz": passThru});
+      nullRepo.processedKeys().should.eql([]);
+    });
+
+    it("should return each event-name as key", () => {
+      repo.processedKeys().should.eql(["event.baz.processed", "event.bar.processed", "event.unrecoverable.processed"]);
+    });
+  });
   describe("first", () => {
     it("should return empty if no events", () => {
       const nullRepo = recipesRepo.init([]);
