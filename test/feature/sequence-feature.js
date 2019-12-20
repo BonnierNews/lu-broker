@@ -75,7 +75,7 @@ Feature("Lamda functions", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: "some-correlation-id"
         }
@@ -188,7 +188,7 @@ Feature("Lamda functions", () => {
             key: "event.the-coolest-event-ever.perform.three"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: "some-correlation-id"
         }
@@ -259,7 +259,7 @@ Feature("Lamda functions", () => {
             key: "event.first.perform.three"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: "some-correlation-id"
         }

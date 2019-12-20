@@ -20,7 +20,7 @@ const liveness = require("./liveness");
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildRejectHandler = require("./lib/handle-rejected-message");
-const internalMessagesHandler = require("./lib/handle-internal-message");
+const buildInternalHandler = require("./lib/handle-internal-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 
@@ -33,13 +33,15 @@ function start({recipes, triggers, useParentCorrelationId}) {
   const handleFlowMessage = buildFlowHandler(recipeMap);
   const handleTriggerMessage = buildTriggerHandler(recipeMap, useParentCorrelationId);
   const handleRejectMessage = buildRejectHandler();
+  const handleInteralMessage = buildInternalHandler(recipeMap);
+
   crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage));
   crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe(recipeMap.keys(), rejectQueueName, handleMessageWrapper(handleRejectMessage));
   internal.subscribe(
     [`${internalPrefix}.#`].concat(recipeMap.processedKeys()),
     internalQueueName,
-    handleMessageWrapper(internalMessagesHandler)
+    handleMessageWrapper(handleInteralMessage)
   );
 }
 

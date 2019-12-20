@@ -112,7 +112,6 @@ Feature("Internal messasges", () => {
     });
 
     And("the broker job server is responding", () => {
-      // this should be unique for every child job
       fakeApi.put("/entity/v2/broker-job/some-correlation-id:event.process.one").reply(200, {
         attributes: {
           responseKey: "event.some-name.perform.one",

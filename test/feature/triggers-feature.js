@@ -2,6 +2,7 @@
 
 const {start, route} = require("../..");
 const {crd} = require("../helpers/queue-helper");
+const brokerServer = require("../helpers/broker-job-server");
 
 function handler() {
   return {type: "i-was-here", id: "my-guid"};
@@ -33,6 +34,10 @@ Feature("Triggers", () => {
       correlationId: "some-other-correlation-id"
     };
   }
+
+  before(() => {
+    brokerServer.start();
+  });
 
   Scenario("Trigger a flow with a trigger message", () => {
     before(() => {
@@ -304,6 +309,7 @@ Feature("Triggers", () => {
 
     When("we publish an order on the other events a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-other-name", source);
+      await new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
 
     And("the flow should be completed", () => {
@@ -321,7 +327,7 @@ Feature("Triggers", () => {
             key: "event.some-other-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: "some-correlation-id"
         }
@@ -333,9 +339,10 @@ Feature("Triggers", () => {
       const {msg, key} = internalMessages.pop();
       key.should.eql("lu-broker.internal.trigger-message");
       msg.should.eql({
-        id: "trigger.event.some-name",
         type: "internal-message",
+        id: "event.some-other-name.perform.one:some-correlation-id",
         attributes: {
+          trigger: "trigger.event.some-name",
           source,
           responseKey: "event.some-other-name.processed",
           message: flowMessages[flowMessages.length - 1].msg
@@ -364,7 +371,7 @@ Feature("Triggers", () => {
         source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: "some-correlation-id:0",
-          notifyProcessed: true,
+          notifyProcessed: "event.some-other-name.perform.one:some-correlation-id",
           parentCorrelationId: "some-correlation-id"
         }
       });

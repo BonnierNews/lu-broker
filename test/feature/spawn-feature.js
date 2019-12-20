@@ -2,13 +2,7 @@
 
 const {start, route} = require("../..");
 const {crd} = require("../helpers/queue-helper");
-
-// function handler() {
-//   return {type: "main-event", id: "my-guid"};
-// }
-// function subHandler() {
-//   return {type: "sub-event", id: "my-other-guid"};
-// }
+const brokerServer = require("../helpers/broker-job-server");
 
 const source = {
   type: "order",
@@ -45,6 +39,7 @@ Feature("Spawn flows with triggers", () => {
 
     before(() => {
       crd.resetMock();
+      brokerServer.start();
       start({
         recipes: [
           {
@@ -64,10 +59,14 @@ Feature("Spawn flows with triggers", () => {
         ]
       });
     });
+
+    after(() => {
+      brokerServer.reset();
+    });
     let flowMessages, donePromise, internalMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
-      internalMessages = crd.subscribe("internal.#");
+      internalMessages = crd.subscribe("#.internal.#");
       donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
 
@@ -76,13 +75,17 @@ Feature("Spawn flows with triggers", () => {
     });
 
     Then("we should get an internal trigger message", () => {
+      internalMessages.should.have.length(1);
       const {key, msg} = internalMessages[0];
-      key.should.eql("internal.trigger-message");
-      msg.id.should.eql("trigger.event.some-sub-name");
-      msg.source.should.eql(source);
+      key.should.eql("lu-broker.internal.trigger-message");
+      msg.id.should.eql("event.some-name.perform.one:some-correlation-id");
       msg.attributes.should.eql({
         responseKey: "event.some-name.perform.two",
+        trigger: "trigger.event.some-sub-name",
+        source,
         message: {
+          id: flowMessages[0].msg.id,
+          type: "event",
           data: [
             {
               id: "my-guid-0",
@@ -97,12 +100,10 @@ Feature("Spawn flows with triggers", () => {
               type: "trigger"
             }
           ],
-          id: flowMessages[0].msg.id,
+          source: {id: source.id, type: source.type, attributes: source.attributes},
           meta: {
             correlationId: "some-correlation-id"
-          },
-          source,
-          type: "event"
+          }
         }
       });
     });
