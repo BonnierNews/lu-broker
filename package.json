@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
   "engines": {
