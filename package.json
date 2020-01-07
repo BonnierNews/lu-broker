@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
-  "engines": {
-    "node": "^10.12"
-  },
   "scripts": {
     "lint": "eslint .",
     "test": "mocha --exit --reporter ${REPORTER:-spec} && eslint . --cache && depcheck --ignores=\"prettier\"",
