@@ -25,6 +25,21 @@ Feature("Triggers", () => {
     };
   }
 
+  function triggerMultiple(incomingSource) {
+    const triggers = [];
+    for (let i = 0; i < incomingSource.numToTrigger; i++) {
+      triggers.push({
+        type: "trigger",
+        id: "event.some-name",
+        source: {...incomingSource, index: i},
+        meta: {
+          correlationId: "some-correlation-id"
+        }
+      });
+    }
+    return triggers;
+  }
+
   function triggerWithCorrelationId() {
     return {
       type: "trigger",
@@ -79,6 +94,69 @@ Feature("Triggers", () => {
           correlationId: "some-correlation-id"
         }
       });
+    });
+  });
+
+  Scenario("Trigger a flow with a trigger message, spawn multiple sequences (2)", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        triggers: {
+          "trigger.some-generic-name": triggerMultiple
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 2});
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(4);
+      const idxs = flowMessages.filter(({key}) => key === "event.some-name.processed").map(({msg}) => msg.source.index);
+      idxs.sort();
+      idxs.should.eql([0, 1]);
+    });
+  });
+
+  Scenario("Trigger a flow with a trigger message, spawn no sequences", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        triggers: {
+          "trigger.some-generic-name": triggerMultiple
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 0});
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(0);
     });
   });
 
