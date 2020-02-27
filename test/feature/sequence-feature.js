@@ -19,6 +19,10 @@ function three() {
   return {type: "3-was-here", id: "my-guid-3"};
 }
 
+function zero() {
+  return {type: "zero-was-here", id: 0};
+}
+
 function multi() {
   return [two(), three()];
 }
@@ -95,7 +99,8 @@ Feature("Lamda functions", () => {
               route(".perform.one", handler),
               route(".perform.empty", empty),
               route(".perform.null", nuller),
-              route(".perform.multi", multi)
+              route(".perform.multi", multi),
+              route(".perform.zero", zero)
             ]
           }
         ]
@@ -111,7 +116,7 @@ Feature("Lamda functions", () => {
     });
 
     And("the flow should be completed", () => {
-      flowMessages.length.should.eql(5);
+      flowMessages.length.should.eql(6);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.multi-test.processed");
       const {data} = msg;
@@ -133,6 +138,12 @@ Feature("Lamda functions", () => {
           id: "my-guid-3",
           occurredAt: msg.data[1].occurredAt,
           key: "event.multi-test.perform.multi"
+        },
+        {
+          type: "zero-was-here",
+          id: 0,
+          occurredAt: msg.data[3].occurredAt,
+          key: "event.multi-test.perform.zero"
         }
       ]);
     });
