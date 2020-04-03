@@ -23,5 +23,7 @@
       "x-dead-letter-exchange": "DLX"
     }
   },
-  "proxyUrl": "http://api.example.com"
+  "proxyUrl": "http://api.example.com",
+  "sigtermEvent": "test-SIGTERM",
+  "shutDownProbeInterval": 10
 }

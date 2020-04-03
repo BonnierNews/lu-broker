@@ -12,11 +12,15 @@ const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
+const shutdownHandler = require("./lib/graceful-shutdown");
 
 function start({recipes, triggers, useParentCorrelationId}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
   if (!config.disableMetricsServer) {
     require("./lib/metrics-server");
+  }
+  if (!config.disableGracefulShutdown) {
+    shutdownHandler.init();
   }
   const recipeMap = recipeRepo.init(recipes, triggers);
   const handleFlowMessage = buildFlowHandler(recipeMap);
