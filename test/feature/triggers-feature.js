@@ -1,7 +1,7 @@
 "use strict";
 
 const {start, route} = require("../..");
-const {crd} = require("../helpers/queue-helper");
+const {crd, reject} = require("../helpers/queue-helper");
 
 function handler() {
   return {type: "i-was-here", id: "my-guid"};
@@ -38,6 +38,10 @@ Feature("Triggers", () => {
       });
     }
     return triggers;
+  }
+
+  function triggerNothing() {
+    return;
   }
 
   function triggerWithCorrelationId() {
@@ -133,6 +137,7 @@ Feature("Triggers", () => {
   Scenario("Trigger a flow with a trigger message, spawn no sequences", () => {
     before(() => {
       crd.resetMock();
+      reject.resetMock();
       start({
         triggers: {
           "trigger.some-generic-name": triggerMultiple
@@ -147,8 +152,10 @@ Feature("Triggers", () => {
       });
     });
     let flowMessages;
+    let rejectMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      rejectMessages = reject.subscribe("#");
     });
 
     When("we publish an order on a trigger key", async () => {
@@ -157,6 +164,48 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(0);
+    });
+
+    And("nothing should be rejected", () => {
+      rejectMessages.length.should.eql(0);
+    });
+  });
+
+  Scenario("Trigger a flow with a trigger message, spawn no sequences #2", () => {
+    before(() => {
+      crd.resetMock();
+      reject.resetMock();
+
+      start({
+        triggers: {
+          "trigger.some-generic-name": triggerNothing
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    let rejectMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+      rejectMessages = reject.subscribe("#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 0});
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(0);
+    });
+
+    And("nothing should be rejected", () => {
+      rejectMessages.length.should.eql(0);
     });
   });
 

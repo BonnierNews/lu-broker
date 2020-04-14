@@ -26,9 +26,11 @@ function start({recipes, triggers, useParentCorrelationId}) {
   const handleFlowMessage = buildFlowHandler(recipeMap);
   const handleTriggerMessage = buildTriggerHandler(recipeMap, useParentCorrelationId);
   const handleRejectMessage = buildRejectHandler();
-  crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage));
-  crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage));
-  reject.subscribe(recipeMap.keys(), rejectQueueName, handleMessageWrapper(handleRejectMessage));
+  const flowKeys = recipeMap.keys();
+  const triggerKeys = recipeMap.triggerKeys();
+  crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));
+  crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
+  reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
 }
 
 function handleMessageWrapper(fn) {
