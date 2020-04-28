@@ -45,9 +45,7 @@ Feature("Graceful shutdown", () => {
     });
 
     Then("there should be one active handler", () => {
-      require("../../lib/active-handlers")
-        .totalActive()
-        .should.eql(1);
+      require("../../lib/active-handlers").totalActive().should.eql(1);
     });
 
     And("it should shutdown", (done) => {
