@@ -19,4 +19,8 @@ describe("find attributes", () => {
   it("should return null if key does not exist", () => {
     should.not.exist(findAttribute([{type: "some__type", id: "some-id"}], "some__type", "some-other-key"));
   });
+
+  it("should return 0 if the value is 0", () => {
+    findAttribute([{type: "some__type", id: 0}], "some__type", "id").should.eql(0);
+  });
 });
