@@ -18,13 +18,13 @@ describe("find or reject", () => {
   });
 
   it("should reject if key does not exist", () => {
-    (function() {
+    (function () {
       findOrReject(rejectUnless, [{type: "some__type", id: "some-id"}], "some__other-type", "id");
     }.should.throw(Error, /Need some__other-type id to proceed/));
   });
 
   it("should reject if attribute does not exist", () => {
-    (function() {
+    (function () {
       findOrReject(rejectUnless, [{type: "some__type", id: "some-id"}], "some__type", "some-other-key");
     }.should.throw(Error, /Need some__type some-other-key to proceed/));
   });
