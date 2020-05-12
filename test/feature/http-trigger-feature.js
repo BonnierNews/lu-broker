@@ -53,7 +53,7 @@ Feature("Trigger via http", () => {
     });
 
     Then("the response should be a 200 OK", () => {
-      response.statusCode.should.eql(200);
+      response.statusCode.should.eql(200, response.text);
     });
 
     And("the flow should be completed", () => {
