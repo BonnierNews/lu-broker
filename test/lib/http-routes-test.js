@@ -1,5 +1,5 @@
 "use strict";
-const routes = require("../../lib/http-routes");
+const routes = require("../../lib/server/routes");
 
 describe("http", () => {
   it("should have a metrics endpoint", () => {

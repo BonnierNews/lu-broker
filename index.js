@@ -30,8 +30,8 @@ function start({recipes, triggers, useParentCorrelationId}) {
   crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
 
-  const routes = require("./lib/http-routes")(triggerKeys);
-  server = require("./lib/http-server")(routes);
+  const routes = require("./lib/server/routes")(triggerKeys);
+  server = require("./lib/server/http-server")(routes);
 }
 
 function stop() {
