@@ -1,5 +1,5 @@
 "use strict";
-const request = require("supertest")("http://localhost:3000");
+const request = require("../helpers/request-helper");
 const {start, route} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 

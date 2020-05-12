@@ -1,23 +1,21 @@
 "use strict";
 const supertest = require("supertest");
-const app = require("../../");
+const app = "http://localhost:3000";
 const pathLib = require("path");
 
-function get(path, apiKey = "test-key") {
+function get(path) {
   return supertest(app)
     .get(path)
     .set("Content-Type", "application/json")
-    .set("X-API-KEY", apiKey)
     .set("correlation-id", caller())
     .expect("Content-Type", /application\/json/);
 }
 
-function post(path, body, apiKey = "test-key") {
+function post(path, body) {
   const callingFunction = caller();
   return supertest(app)
     .post(path)
     .set("Content-Type", "application/json")
-    .set("X-API-KEY", apiKey)
     .set("correlation-id", callingFunction)
     .send(body)
     .expect("Content-Type", /application\/json/)
