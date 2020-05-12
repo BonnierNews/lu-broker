@@ -16,9 +16,6 @@ const shutdownHandler = require("./lib/graceful-shutdown");
 
 function start({recipes, triggers, useParentCorrelationId}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
-  if (!config.disableMetricsServer) {
-    require("./lib/metrics-server");
-  }
   if (!config.disableGracefulShutdown) {
     shutdownHandler.init();
   }
@@ -31,6 +28,9 @@ function start({recipes, triggers, useParentCorrelationId}) {
   crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));
   crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
+
+  const routes = require("./lib/http-routes")(triggerKeys);
+  require("./lib/http-server")(routes);
 }
 
 function handleMessageWrapper(fn) {
