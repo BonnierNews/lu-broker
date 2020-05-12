@@ -11,7 +11,7 @@ Feature("Trigger via http", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "some-correlation-id"},
+    meta: {correlationId: "trigger-via-http-correlation"},
     attributes: {baz: true}
   };
   function trigger() {
@@ -19,9 +19,7 @@ Feature("Trigger via http", () => {
       type: "trigger",
       id: "event.some-name",
       source,
-      meta: {
-        correlationId: "some-correlation-id"
-      }
+      correlationId: "some-other-trigger-via-http-correlation"
     };
   }
 
@@ -74,7 +72,7 @@ Feature("Trigger via http", () => {
         ],
         source,
         meta: {
-          correlationId: "some-correlation-id"
+          correlationId: "trigger-via-http-correlation"
         }
       });
     });
@@ -112,7 +110,8 @@ Feature("Trigger via http", () => {
         ],
         source,
         meta: {
-          correlationId: "some-correlation-id"
+          parentCorrelationId: "trigger-via-http-correlation",
+          correlationId: "some-other-trigger-via-http-correlation"
         }
       });
     });
