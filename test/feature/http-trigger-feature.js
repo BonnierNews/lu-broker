@@ -1,6 +1,6 @@
 "use strict";
 const request = require("../helpers/request-helper");
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 
 function handler() {
@@ -40,6 +40,7 @@ Feature("Trigger via http", () => {
       ]
     });
   });
+  after(stop);
 
   Scenario("Trigger a flow with a generic http POST trigger message", () => {
     let flowMessages;

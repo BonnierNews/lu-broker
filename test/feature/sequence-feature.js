@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 
 function handler() {
@@ -36,6 +36,7 @@ function nuller() {
 }
 
 Feature("Lamda functions", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",

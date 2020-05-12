@@ -13,6 +13,7 @@ const buildRejectHandler = require("./lib/handle-rejected-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
 const shutdownHandler = require("./lib/graceful-shutdown");
+let server;
 
 function start({recipes, triggers, useParentCorrelationId}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
@@ -30,7 +31,12 @@ function start({recipes, triggers, useParentCorrelationId}) {
   reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
 
   const routes = require("./lib/http-routes")(triggerKeys);
-  require("./lib/http-server")(routes);
+  server = require("./lib/http-server")(routes);
+}
+
+function stop() {
+  if (!server) return Promise.resolve(server);
+  return new Promise((resolve) => server.close(resolve));
 }
 
 function handleMessageWrapper(fn) {
@@ -51,6 +57,7 @@ module.exports = {
   route,
   liveness,
   buildContext: context,
+  stop,
   publishCli,
   testHelpers: brokerBackend === "fake-rabbitmq" ? require("./lib/test-helpers") : null
 };

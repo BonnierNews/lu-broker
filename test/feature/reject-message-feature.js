@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
 
 function rejectHandler(message, context) {
@@ -9,6 +9,7 @@ function rejectHandler(message, context) {
 }
 
 Feature("Reject message", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",

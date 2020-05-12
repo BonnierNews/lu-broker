@@ -21,6 +21,7 @@
     "Then": false,
     "And": false,
     "But": false,
-    "beforeEachScenario": false
+    "beforeEachScenario": false,
+    "afterEachScenario": false
   }
 }
