@@ -116,4 +116,58 @@ Feature("Trigger via http", () => {
       });
     });
   });
+
+  Scenario("Trying to trigger a flow with invalid POST message", () => {
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    let response;
+    When("we POST an empty request via http", async () => {
+      response = await request.post("/trigger/some-name");
+    });
+
+    Then("the response should be a 400 bad request", () => {
+      response.statusCode.should.eql(400, response.text);
+    });
+
+    Then("the response should be an error message", () => {
+      response.body.should.eql({
+        errors: [
+          {
+            title: "ValidationError in body",
+            status: "validation_error",
+            source: {
+              pointer: "body[type]"
+            },
+            detail: "Missing required attribute 'type'"
+          },
+          {
+            title: "ValidationError in body",
+            status: "validation_error",
+            source: {
+              pointer: "body[id]"
+            },
+            detail: "Missing required attribute 'id'"
+          },
+          {
+            title: "ValidationError in body",
+            status: "validation_error",
+            source: {
+              pointer: "body[attributes]"
+            },
+            detail: "Missing required attribute 'attributes'"
+          }
+        ],
+        meta: {
+          correlationId: "./test/feature/http-trigger-feature.js:128"
+        }
+      });
+    });
+
+    And("the there should be no flowMessages", () => {
+      flowMessages.length.should.eql(0);
+    });
+  });
 });
