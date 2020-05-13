@@ -1,7 +1,7 @@
 "use strict";
 
 const {crd} = require("../helpers/queue-helper");
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 
 const snooze = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -18,6 +18,7 @@ function handler() {
 }
 
 Feature("Graceful shutdown", () => {
+  afterEachScenario(stop);
   Scenario("SIGTERM is received when handler is doing work", () => {
     Given("broker is started", () => {
       start({

@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
 
 function handler() {
@@ -8,6 +8,7 @@ function handler() {
 }
 
 Feature("Triggers", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",
