@@ -48,7 +48,7 @@ Feature("Trigger via http", () => {
 
     let response;
     When("we POST an order via http", async () => {
-      response = await request.post("/trigger/some-name", source);
+      response = await request.post("/trigger/event/some-name", source);
     });
 
     Then("the response should be a 200 OK", () => {
@@ -125,7 +125,7 @@ Feature("Trigger via http", () => {
 
     let response;
     When("we POST an empty request via http", async () => {
-      response = await request.post("/trigger/some-name");
+      response = await request.post("/trigger/event/some-name");
     });
 
     Then("the response should be a 400 bad request", () => {
