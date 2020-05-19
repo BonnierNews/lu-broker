@@ -89,47 +89,27 @@ Feature("Spawn flows with triggers", () => {
     after(() => {
       brokerServer.reset();
     });
-    let flowMessages, donePromise, internalMessages;
+    let flowMessages, donePromise, triggerMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
-      internalMessages = crd.subscribe("#.internal.#");
       donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
 
     When("we publish an order on the other events a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
+      triggerMessages = crd.subscribe("trigger.#");
     });
 
-    Then("we should get an internal trigger message", () => {
-      internalMessages.should.have.length(1);
-      const {key, msg} = internalMessages[0];
-      key.should.eql("lu-broker.internal.trigger-message");
-      msg.id.should.eql("event.some-name.perform.one:some-correlation-id");
-      msg.attributes.should.eql({
-        responseKey: "event.some-name.perform.two",
-        trigger: "trigger.event.some-sub-name",
-        source,
-        message: {
-          id: flowMessages[0].msg.id,
-          type: "event",
-          data: [
-            {
-              id: "my-guid-0",
-              key: "event.some-name.perform.first",
-              occurredAt: msg.attributes.message.data[0].occurredAt,
-              type: "baz"
-            },
-            {
-              id: "event.some-sub-name",
-              key: "event.some-name.perform.one",
-              occurredAt: msg.attributes.message.data[1].occurredAt,
-              type: "trigger"
-            }
-          ],
-          source: {id: source.id, type: source.type, attributes: source.attributes},
-          meta: {
-            correlationId: "some-correlation-id"
-          }
+    Then("we should get a trigger message", () => {
+      triggerMessages.should.have.length(1);
+      const {key, msg} = triggerMessages[0];
+      key.should.eql("trigger.event.some-sub-name");
+      msg.should.eql({
+        ...source,
+        meta: {
+          correlationId: "some-correlation-id:0",
+          notifyProcessed: "event.some-name.perform.one:some-correlation-id",
+          parentCorrelationId: "some-correlation-id"
         }
       });
     });
@@ -153,7 +133,7 @@ Feature("Spawn flows with triggers", () => {
     });
   });
 
-  Scenario.only("Trigger a flow by returning a list of sources in a trigger message from handler", () => {
+  Scenario("Trigger a flow by returning a list of sources in a trigger message from handler", () => {
     const result = [];
     let tries = 0;
     function addWithDelay(i, delay = 0) {
@@ -200,60 +180,26 @@ Feature("Spawn flows with triggers", () => {
     after(() => {
       brokerServer.reset();
     });
-    let flowMessages, subFlowMessages, donePromise, internalMessages;
+    let flowMessages, subFlowMessages, donePromise, triggerMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
       subFlowMessages = crd.subscribe("event.some-sub-name.#");
-      internalMessages = crd.subscribe("#.internal.#");
       donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
 
     When("we publish an order on the other events a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
+      triggerMessages = crd.subscribe("trigger.#");
     });
 
-    Then("we should get 2 internal trigger messages", () => {
-      internalMessages.should.have.length(2);
+    Then("we should get 2 trigger messages", () => {
+      triggerMessages.should.have.length(2);
     });
 
     And("the last one should be the last source message", () => {
-      const {key, msg} = internalMessages[1];
-      key.should.eql("lu-broker.internal.trigger-message");
-      msg.id.should.eql("event.some-name.perform.one:some-correlation-id");
-      msg.attributes.should.eql({
-        responseKey: "event.some-name.perform.two",
-        trigger: "trigger.event.some-sub-name",
-        source: source2,
-        childCount: 2,
-        message: {
-          id: flowMessages[0].msg.id,
-          type: "event",
-          data: [
-            {
-              id: "my-guid-0",
-              key: "event.some-name.perform.first",
-              occurredAt: msg.attributes.message.data[0].occurredAt,
-              type: "baz"
-            },
-            {
-              id: "event.some-sub-name",
-              key: "event.some-name.perform.one",
-              occurredAt: msg.attributes.message.data[1].occurredAt,
-              type: "trigger"
-            },
-            {
-              id: "event.some-sub-name",
-              key: "event.some-name.perform.one",
-              occurredAt: msg.attributes.message.data[2].occurredAt,
-              type: "trigger"
-            }
-          ],
-          source: {id: source.id, type: source.type, attributes: source.attributes},
-          meta: {
-            correlationId: "some-correlation-id"
-          }
-        }
-      });
+      const {key, msg} = triggerMessages[1];
+      key.should.eql("trigger.event.some-sub-name");
+      msg.should.eql(source2);
     });
 
     And("the parent flow should be completed", async () => {

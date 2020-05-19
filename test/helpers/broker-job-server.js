@@ -18,18 +18,18 @@ function start() {
     });
 
   fakeApi
-    .put(/\/entity\/v2\/broker-job\/[^/]+/)
+    .put(/\/entity\/v2\/broker-job\/[^/]+\/[^/]+/)
     .times(1000)
     .reply((uri) => {
       logger.info(`Got request to complete job with uri:${uri}`);
 
-      const [, id] = uri.split("/entity/v2/broker-job/");
+      const [, , , , id, index] = uri.split(/\//gm);
       if (store[id]) {
-        store[id].childCount = store[id].childCount - 1;
+        store[id].children = new Set([].concat(store[id].children || [], index));
         return [
           200,
           {
-            attributes: {...store[id], done: store[id].childCount === 0}
+            attributes: {...store[id], done: store[id].childCount === store[id].children.size}
           }
         ];
       }
