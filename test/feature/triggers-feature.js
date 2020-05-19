@@ -1,14 +1,15 @@
 "use strict";
 
-const {start, route} = require("../..");
-const {crd} = require("../helpers/queue-helper");
 const brokerServer = require("../helpers/broker-job-server");
+const {start, route, stop} = require("../..");
+const {crd, reject} = require("../helpers/queue-helper");
 
 function handler() {
   return {type: "i-was-here", id: "my-guid"};
 }
 
 Feature("Triggers", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",
@@ -24,6 +25,25 @@ Feature("Triggers", () => {
         correlationId: "some-correlation-id"
       }
     };
+  }
+
+  function triggerMultiple(incomingSource) {
+    const triggers = [];
+    for (let i = 0; i < incomingSource.numToTrigger; i++) {
+      triggers.push({
+        type: "trigger",
+        id: "event.some-name",
+        source: {...incomingSource, index: i},
+        meta: {
+          correlationId: "some-correlation-id"
+        }
+      });
+    }
+    return triggers;
+  }
+
+  function triggerNothing() {
+    return;
   }
 
   function triggerWithCorrelationId() {
@@ -84,6 +104,114 @@ Feature("Triggers", () => {
           correlationId: "some-correlation-id"
         }
       });
+    });
+  });
+
+  Scenario("Trigger a flow with a trigger message, spawn multiple sequences (2)", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        triggers: {
+          "trigger.some-generic-name": triggerMultiple
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 2});
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(4);
+      const idxs = flowMessages.filter(({key}) => key === "event.some-name.processed").map(({msg}) => msg.source.index);
+      idxs.sort();
+      idxs.should.eql([0, 1]);
+    });
+  });
+
+  Scenario("Trigger a flow with a trigger message, spawn no sequences", () => {
+    before(() => {
+      crd.resetMock();
+      reject.resetMock();
+      start({
+        triggers: {
+          "trigger.some-generic-name": triggerMultiple
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    let rejectMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+      rejectMessages = reject.subscribe("#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 0});
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(0);
+    });
+
+    And("nothing should be rejected", () => {
+      rejectMessages.length.should.eql(0);
+    });
+  });
+
+  Scenario("Trigger a flow with a trigger message, spawn no sequences #2", () => {
+    before(() => {
+      crd.resetMock();
+      reject.resetMock();
+
+      start({
+        triggers: {
+          "trigger.some-generic-name": triggerNothing
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    let rejectMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+      rejectMessages = reject.subscribe("#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 0});
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(0);
+    });
+
+    And("nothing should be rejected", () => {
+      rejectMessages.length.should.eql(0);
     });
   });
 

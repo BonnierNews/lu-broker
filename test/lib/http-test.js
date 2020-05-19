@@ -15,11 +15,7 @@ describe("http", () => {
     });
 
     it("should do get-requests with query-string", async () => {
-      fakeApi
-        .get("/some/path")
-        .query({q: "some-query"})
-        .times(2)
-        .reply(200, {ok: true});
+      fakeApi.get("/some/path").query({q: "some-query"}).times(2).reply(200, {ok: true});
       const result = await http.asserted.get({path: "/some/path", correlationId, qs: {q: "some-query"}});
       result.should.eql({ok: true});
 
@@ -98,11 +94,7 @@ describe("http", () => {
     });
 
     it("should do get-requests with query-string", async () => {
-      fakeApi
-        .get("/some/path")
-        .query({q: "some-query"})
-        .times(2)
-        .reply(200, {ok: true});
+      fakeApi.get("/some/path").query({q: "some-query"}).times(2).reply(200, {ok: true});
       const result = await http.get({path: "/some/path", correlationId, qs: {q: "some-query"}});
       result.statusCode.should.eql(200);
       result.body.should.eql({ok: true});
@@ -163,9 +155,7 @@ describe("http", () => {
   describe("with baseUrl", () => {
     const correlationId = "http-test-with-base-url";
     it("should allow url as param", async () => {
-      nock("http://other-api.example.com")
-        .get("/some/path")
-        .reply(200, {ok: true});
+      nock("http://other-api.example.com").get("/some/path").reply(200, {ok: true});
       const result = await http.get({baseUrl: "http://other-api.example.com", path: "/some/path", correlationId});
       result.statusCode.should.eql(200);
       result.body.should.eql({ok: true});

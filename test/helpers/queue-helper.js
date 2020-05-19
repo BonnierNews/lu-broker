@@ -30,14 +30,18 @@ function queue(broker) {
     oldSub(routingKeyOrKeys, q, handler, cb);
   };
 
-  function subscribe(routingKey, done) {
+  function subscribe(routingKey, waitForNumMessages, done) {
+    if (!done) {
+      done = waitForNumMessages;
+      waitForNumMessages = 1;
+    }
     const messages = [];
     broker.subscribeTmp(routingKey, (msg, meta) => {
       messages.push({key: meta.fields.routingKey, msg, meta});
-      if (typeof done === "function") {
+      if (typeof done === "function" && messages.length >= waitForNumMessages) {
         const tmpFn = done;
         done = null; // reset done so it wont be called more than once.
-        tmpFn(null, msg);
+        tmpFn(null, waitForNumMessages === 1 ? msg : messages);
       }
     });
     return messages;

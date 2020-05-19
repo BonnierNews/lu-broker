@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
 
 function rejectHandler(message, context) {
@@ -9,6 +9,7 @@ function rejectHandler(message, context) {
 }
 
 Feature("Reject message", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",
@@ -76,6 +77,75 @@ Feature("Reject message", () => {
     });
     And("the rejected message should have correct routingKey", () => {
       rejectedMessages[0].meta.fields.routingKey.should.eql("event.some-name.perform.one");
+    });
+  });
+
+  Scenario("Rejecting a trigger message", () => {
+    before(() => {
+      crd.resetMock();
+      reject.resetMock();
+      start({
+        triggers: {
+          "trigger.some-name": () => {
+            throw Error("got that wrong");
+          }
+        },
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", rejectHandler)]
+          }
+        ]
+      });
+    });
+    let rejectedMessages;
+
+    Given("we are listening for messages on the event namespace", () => {
+      rejectedMessages = reject.subscribe("#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.some-name", source);
+    });
+
+    Then("the trigger message should be rejected", () => {
+      rejectedMessages.length.should.eql(1);
+      rejectedMessages[0].key.should.eql("trigger.some-name");
+    });
+
+    And("the message should be acked and be the same as the rejected message", () => {
+      crd.ackedMessages[0].should.eql(rejectedMessages[0].msg);
+    });
+
+    And("the reject queue should have a nacked message", () => {
+      reject.nackedMessages.should.have.length(1);
+      reject.nackedMessages[0].should.eql(rejectedMessages[0].msg);
+    });
+
+    And("the rejected message should not longer have a reject key", () => {
+      rejectedMessages[0].meta.properties.should.not.have.property("type");
+    });
+
+    And("the rejected message should have x-death set", () => {
+      rejectedMessages[0].meta.properties.headers.should.have.property("x-death");
+    });
+    And("the rejected message should have the expected x-death", () => {
+      const [xDeath] = rejectedMessages[0].meta.properties.headers["x-death"];
+      xDeath.should.eql({
+        count: 1,
+        exchange: "CRDExchangeTest",
+        queue: "lu-broker-triggers-test",
+        reason: "rejected",
+        "routing-keys": ["trigger.some-name"],
+        time: xDeath.time
+      });
+    });
+    And("the rejected message should have x-routing-key set", () => {
+      rejectedMessages[0].meta.properties.headers.should.have.property("x-routing-key", "trigger.some-name");
+    });
+    And("the rejected message should have correct routingKey", () => {
+      rejectedMessages[0].meta.fields.routingKey.should.eql("trigger.some-name");
     });
   });
 

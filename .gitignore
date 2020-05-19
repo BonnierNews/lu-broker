@@ -35,4 +35,4 @@ tags
 
 # Logs
 logs/*
-tmp
+tmp/

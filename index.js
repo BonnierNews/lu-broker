@@ -23,26 +23,39 @@ const buildRejectHandler = require("./lib/handle-rejected-message");
 const buildInternalHandler = require("./lib/handle-internal-message");
 const context = require("./lib/context");
 const publishCli = require("./publish-cli");
+const shutdownHandler = require("./lib/graceful-shutdown");
+let server;
 
 function start({recipes, triggers, useParentCorrelationId}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
-  if (!config.disableMetricsServer) {
-    require("./lib/metrics-server");
+  if (!config.disableGracefulShutdown) {
+    shutdownHandler.init();
   }
   const recipeMap = recipeRepo.init(recipes, triggers);
   const handleFlowMessage = buildFlowHandler(recipeMap);
   const handleTriggerMessage = buildTriggerHandler(recipeMap, useParentCorrelationId);
   const handleRejectMessage = buildRejectHandler();
   const handleInteralMessage = buildInternalHandler(recipeMap);
+  const flowKeys = recipeMap.keys();
+  const triggerKeys = recipeMap.triggerKeys();
+    
+  crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));
+  crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
+  reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
 
-  crd.subscribe(recipeMap.keys(), lambdasQueueName, handleMessageWrapper(handleFlowMessage));
-  crd.subscribe(recipeMap.triggerKeys(), triggersQueueName, handleMessageWrapper(handleTriggerMessage));
-  reject.subscribe(recipeMap.keys(), rejectQueueName, handleMessageWrapper(handleRejectMessage));
   internal.subscribe(
     [`${internalPrefix}.#`].concat(recipeMap.processedKeys()),
     internalQueueName,
     handleMessageWrapper(handleInteralMessage)
   );
+
+  const routes = require("./lib/server/routes")(triggerKeys);
+  server = require("./lib/server/http-server")(routes);
+}
+
+function stop() {
+  if (!server) return Promise.resolve(server);
+  return new Promise((resolve) => server.close(resolve));
 }
 
 function handleMessageWrapper(fn) {
@@ -63,6 +76,7 @@ module.exports = {
   route,
   liveness,
   buildContext: context,
+  stop,
   publishCli,
   testHelpers: brokerBackend === "fake-rabbitmq" ? require("./lib/test-helpers") : null
 };

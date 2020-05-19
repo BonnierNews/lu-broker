@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
 const config = require("exp-config");
 
@@ -10,6 +10,7 @@ function rejectHandler(message, context) {
 }
 
 Feature("Reject message as unrecoverable", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",

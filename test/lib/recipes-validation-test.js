@@ -22,15 +22,15 @@ describe("recipes-repo validation", () => {
 
   describe("validate recipe structure", () => {
     it("should not allow unknown keys", () => {
-      (function() {
+      (function () {
         recipesRepo.init([events[0], {...events[1], foobar: "foobar"}]);
-      }.should.throw(Error, /value: "foobar" detail: "foobar" is not allowed/));
+      }.should.throw(Error, 'value: "foobar" detail: "[1].foobar" is not allowed'));
     });
   });
 
   describe("validate event keys", () => {
     it("should not allow borrowing from unknown key", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           events[0],
           {...events[1], sequence: [...events[1].sequence, route("event.one.perform.three")]}
@@ -42,7 +42,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should not allow functions for borrowing", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           events[0],
           {...events[1], sequence: [events[1].sequence[0], route("event.one.perform.first", passThru)]}
@@ -51,7 +51,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should require a fn for internal keys", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             namespace: "event",
@@ -63,7 +63,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should only allow functions for internal keys", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             namespace: "event",
@@ -75,7 +75,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should not allow duplicates in sequence", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             namespace: "event",
@@ -83,11 +83,11 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.one", passThru), route(".perform.one", passThru)]
           }
         ]);
-      }.should.throw(Error, /detail: "sequence" position 1 contains a duplicate value/));
+      }.should.throw(Error, 'value: {} detail: "[0].sequence[1]" contains a duplicate value'));
     });
 
     it("should not allow more than 4 parts if no agumentation", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             name: "one",
@@ -99,7 +99,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should not allow less than 4 parts if no agumentation", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             name: "one",
@@ -111,7 +111,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should not allow more than 5 parts if agumentation", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             name: "one",
@@ -123,7 +123,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should not allow less than 5 parts if agumentation", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             name: "one",
@@ -137,7 +137,7 @@ describe("recipes-repo validation", () => {
 
   describe("validate triggers", () => {
     it("should only allow functions for triggers", () => {
-      (function() {
+      (function () {
         recipesRepo.init([events[0]], {
           "trigger.baz": "hej.hopp"
         });
@@ -145,7 +145,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should only allow more than 2 parts in triggers", () => {
-      (function() {
+      (function () {
         recipesRepo.init([events[0]], {
           "trigger.baz.bar": passThru
         });
@@ -153,7 +153,7 @@ describe("recipes-repo validation", () => {
     });
 
     it("should only allow to start with trigger", () => {
-      (function() {
+      (function () {
         recipesRepo.init([events[0]], {
           "triggerzzz.baz": passThru
         });
@@ -163,13 +163,13 @@ describe("recipes-repo validation", () => {
 
   describe("validate verbs", () => {
     it("should not allow unknown verbs", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           events[0],
           {...events[1], sequence: [route(".fimp.first", passThru), events[1].sequence[1]]}
         ]);
       }.should.throw(Error, /Invalid verb in .fimp.first/));
-      (function() {
+      (function () {
         recipesRepo.init([
           events[0],
           {...events[1], sequence: [route("event.one.fimp.first", passThru), events[1].sequence[1]]}
@@ -190,7 +190,7 @@ describe("recipes-repo validation", () => {
         innerEvents[0].sequence.push(route(`.${verb}.anything`, passThru));
       });
 
-      (function() {
+      (function () {
         recipesRepo.init(innerEvents, innerLambdas);
       }.should.not.throw(Error));
     });
@@ -220,7 +220,7 @@ describe("recipes-repo validation", () => {
         innerEvents[1].sequence.push(route(`event.one.optional.${verb}.anything`));
       });
 
-      (function() {
+      (function () {
         recipesRepo.init(innerEvents);
       }.should.not.throw(Error));
     });
@@ -237,7 +237,7 @@ describe("recipes-repo validation", () => {
         innerEvents[0].sequence.push(route(`.optional.${verb}.anything`, passThru));
       });
 
-      (function() {
+      (function () {
         recipesRepo.init(innerEvents);
       }.should.not.throw(Error));
     });
@@ -254,7 +254,7 @@ describe("recipes-repo validation", () => {
         innerEvents[0].sequence.push(route(`.baz.${verb}.anything`, passThru));
       });
 
-      (function() {
+      (function () {
         recipesRepo.init(innerEvents);
       }.should.throw(Error, /Invalid step .baz.get-or-create.anything/));
     });
@@ -262,12 +262,12 @@ describe("recipes-repo validation", () => {
 
   describe("validate namespace names", () => {
     it("should not allow unknown namespaces", () => {
-      (function() {
+      (function () {
         recipesRepo.init([events[0], {...events[1], namespace: "foobar"}]);
-      }.should.throw(Error, 'value: "foobar" detail: "namespace" must be one of [event, action, sequence]'));
+      }.should.throw(Error, 'value: "foobar" detail: "[1].namespace" must be one of [event, action, sequence]'));
     });
     it("should allow known namespaces", () => {
-      (function() {
+      (function () {
         recipesRepo.init([
           {
             namespace: "event",
@@ -286,29 +286,29 @@ describe("recipes-repo validation", () => {
 
   describe("validate event names", () => {
     it("should not allow duplicates", () => {
-      (function() {
+      (function () {
         recipesRepo.init([...events, events[0]]);
       }.should.throw(Error, /duplicate value/));
     });
     it("should not allow invalid chars", () => {
-      (function() {
+      (function () {
         recipesRepo.init([events[0], {...events[1], name: ".hej"}]);
       }.should.throw(
         Error,
-        'value: ".hej" detail: "name" with value ".hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
+        '.hej" detail: "[1].name" with value ".hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
       ));
-      (function() {
+      (function () {
         recipesRepo.init([events[0], {...events[1], name: "#hej"}]);
       }.should.throw(
         Error,
-        'value: "#hej" detail: "name" with value "#hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
+        'value: "#hej" detail: "[1].name" with value "#hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
       ));
     });
   });
 
   describe("validate unrecoverable keys", () => {
     it("should only allow *", () => {
-      (function() {
+      (function () {
         recipesRepo.init([{...events[1], unrecoverable: [{baz: () => {}}]}]);
       }.should.throw(Error, /Invalid key in unrecoverable: baz in event.two, allowed are '*'/));
     });
