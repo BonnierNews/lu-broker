@@ -11,9 +11,9 @@ function start() {
     .post("/entity/v2/broker-job")
     .times(1000)
     .reply((uri, requestBody) => {
-      const {id, responseKey, message} = requestBody;
+      const {id, responseKey, message, childCount} = requestBody;
       logger.info(`Noted job with id:${id}, responseKey:${responseKey}`);
-      store[id] = {responseKey, message};
+      store[id] = {responseKey, message, childCount};
       return [201, {}];
     });
 
@@ -22,12 +22,14 @@ function start() {
     .times(1000)
     .reply((uri) => {
       logger.info(`Got request to complete job with uri:${uri}`);
+
       const [, id] = uri.split("/entity/v2/broker-job/");
       if (store[id]) {
+        store[id].childCount = store[id].childCount - 1;
         return [
           200,
           {
-            attributes: store[id]
+            attributes: {...store[id], done: store[id].childCount === 0}
           }
         ];
       }

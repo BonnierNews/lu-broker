@@ -200,9 +200,10 @@ Feature("Spawn flows with triggers", () => {
     after(() => {
       brokerServer.reset();
     });
-    let flowMessages, donePromise, internalMessages;
+    let flowMessages, subFlowMessages, donePromise, internalMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
+      subFlowMessages = crd.subscribe("event.some-sub-name.#");
       internalMessages = crd.subscribe("#.internal.#");
       donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
@@ -223,6 +224,7 @@ Feature("Spawn flows with triggers", () => {
         responseKey: "event.some-name.perform.two",
         trigger: "trigger.event.some-sub-name",
         source: source2,
+        childCount: 2,
         message: {
           id: flowMessages[0].msg.id,
           type: "event",
@@ -254,9 +256,9 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    And("the flow should be completed", async () => {
+    And("the parent flow should be completed", async () => {
       await donePromise;
-      flowMessages.length.should.eql(6);
+      flowMessages.length.should.eql(4);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.data
@@ -267,6 +269,17 @@ Feature("Spawn flows with triggers", () => {
           {type: "trigger", id: "event.some-sub-name"},
           {type: "baz", id: "my-guid-2"}
         ]);
+    });
+
+    And("the 2 child flows should be completed", async () => {
+      await donePromise;
+      subFlowMessages.length.should.eql(4);
+      subFlowMessages
+        .filter(({key}) => key === "event.some-sub-name.processed")
+        .map(({msg}) => msg.data)
+        .forEach((data, idx) => {
+          data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
+        });
     });
 
     And("the handlers should have been triggered in correct order", () => {
