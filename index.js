@@ -38,7 +38,7 @@ function start({recipes, triggers, useParentCorrelationId}) {
   const handleInteralMessage = buildInternalHandler(recipeMap);
   const flowKeys = recipeMap.keys();
   const triggerKeys = recipeMap.triggerKeys();
-    
+
   crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));
   crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));

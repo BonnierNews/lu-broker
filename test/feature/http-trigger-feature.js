@@ -70,7 +70,7 @@ Feature("Trigger via http", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source,
+        source: {id: source.id, type: source.type, attributes: source.attributes},
         meta: {
           correlationId: "trigger-via-http-correlation"
         }

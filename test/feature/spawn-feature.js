@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 const brokerServer = require("../helpers/broker-job-server");
 
@@ -52,6 +52,7 @@ function sleep(ms) {
   });
 }
 Feature("Spawn flows with triggers", () => {
+  afterEachScenario(stop);
   Scenario("Trigger a flow by returning a trigger message from handler", () => {
     const result = [];
     function addWithDelay(i, delay = 0) {

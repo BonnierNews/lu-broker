@@ -1,6 +1,6 @@
 "use strict";
 
-const {start, route} = require("../..");
+const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 const broker = require("../../lib/broker");
 const fakeApi = require("../helpers/fake-api");
@@ -10,6 +10,7 @@ function handler() {
 }
 
 Feature("Internal messasges", () => {
+  afterEachScenario(stop);
   const source = {
     type: "order",
     id: "some-id",
