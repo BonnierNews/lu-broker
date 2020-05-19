@@ -160,7 +160,6 @@ Feature("Spawn flows with triggers", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        console.log("***** DEBUG **** in delay", i, __filename);
         return {type: "baz", id: `my-guid-${i}`};
       };
     }
