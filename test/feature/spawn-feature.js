@@ -153,19 +153,31 @@ Feature("Spawn flows with triggers", () => {
     });
   });
 
-  Scenario("Trigger a flow by returning a list of sources in a trigger message from handler", () => {
+  Scenario.only("Trigger a flow by returning a list of sources in a trigger message from handler", () => {
     const result = [];
+    let tries = 0;
     function addWithDelay(i, delay = 0) {
       return async () => {
         await sleep(delay);
         result.push(i);
+        console.log("***** DEBUG **** in delay", i, __filename);
         return {type: "baz", id: `my-guid-${i}`};
+      };
+    }
+    function addWithTry(i, delay = 0) {
+      return async () => {
+        tries = tries + 10;
+        const newDelay = delay + tries;
+        await sleep(newDelay);
+        result.push(i);
+        return {type: "baz", id: `my-try-${newDelay}`};
       };
     }
 
     before(() => {
       crd.resetMock();
       brokerServer.start();
+
       start({
         recipes: [
           {
@@ -180,7 +192,7 @@ Feature("Spawn flows with triggers", () => {
           {
             namespace: "event",
             name: "some-sub-name",
-            sequence: [route(".perform.one", addWithDelay(1, 5))]
+            sequence: [route(".perform.one", addWithTry(1, 5))]
           }
         ]
       });
@@ -259,7 +271,7 @@ Feature("Spawn flows with triggers", () => {
     });
 
     And("the handlers should have been triggered in correct order", () => {
-      result.should.eql([0, 1, 1, 2, 2]);
+      result.should.eql([0, 1, 1, 2]);
     });
   });
 
