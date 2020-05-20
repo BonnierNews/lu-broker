@@ -428,15 +428,15 @@ Feature("Triggers", () => {
     });
     let flowMessages;
     let secondFlowMessages;
-    let internalMessages;
+    let triggerMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-other-name.#");
       secondFlowMessages = crd.subscribe("event.some-name.#");
-      internalMessages = crd.subscribe("#.internal.#");
     });
 
     When("we publish an order on the other events a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-other-name", source);
+      triggerMessages = crd.subscribe("trigger.#");
       await new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
 
@@ -463,20 +463,15 @@ Feature("Triggers", () => {
     });
 
     And("there should be an internal message", () => {
-      internalMessages.length.should.eql(1);
-      const {msg, key} = internalMessages.pop();
-      key.should.eql("lu-broker.internal.trigger-message");
+      triggerMessages.length.should.eql(1);
+      const {msg, key} = triggerMessages.pop();
+      key.should.eql("trigger.event.some-name");
       msg.should.eql({
-        type: "internal-message",
-        id: "event.some-other-name.perform.one:some-correlation-id",
-        attributes: {
-          trigger: "trigger.event.some-name",
-          source,
-          responseKey: "event.some-other-name.processed",
-          message: flowMessages[flowMessages.length - 1].msg
-        },
+        ...source,
         meta: {
-          correlationId: source.meta.correlationId
+          correlationId: "some-correlation-id:0",
+          notifyProcessed: "event.some-other-name.perform.one:some-correlation-id",
+          parentCorrelationId: "some-correlation-id"
         }
       });
     });
