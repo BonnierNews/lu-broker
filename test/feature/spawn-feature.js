@@ -197,9 +197,26 @@ Feature("Spawn flows with triggers", () => {
     });
 
     And("the last one should be the last source message", () => {
-      const {key, msg} = triggerMessages[1];
-      key.should.eql("trigger.event.some-sub-name");
-      msg.should.eql(source2);
+      triggerMessages
+        .map(({msg}) => msg)
+        .should.eql([
+          {
+            ...source,
+            meta: {
+              correlationId: "some-correlation-id:0",
+              notifyProcessed: "event.some-name.perform.one:some-correlation-id",
+              parentCorrelationId: "some-correlation-id"
+            }
+          },
+          {
+            ...source2,
+            meta: {
+              correlationId: "some-correlation-id:1",
+              notifyProcessed: "event.some-name.perform.one:some-correlation-id",
+              parentCorrelationId: "some-correlation-id"
+            }
+          }
+        ]);
     });
 
     And("the parent flow should be completed", async () => {
@@ -208,12 +225,11 @@ Feature("Spawn flows with triggers", () => {
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.data
-        .map(({type, id}) => ({type, id}))
+        .map(({type, id, times}) => ({type, id, times}))
         .should.eql([
-          {type: "baz", id: "my-guid-0"},
-          {type: "trigger", id: "event.some-sub-name"},
-          {type: "trigger", id: "event.some-sub-name"},
-          {type: "baz", id: "my-guid-2"}
+          {type: "baz", id: "my-guid-0", times: undefined},
+          {type: "trigger", id: "event.some-sub-name", times: 2},
+          {type: "baz", id: "my-guid-2", times: undefined}
         ]);
     });
 
