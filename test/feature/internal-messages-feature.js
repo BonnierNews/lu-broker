@@ -3,12 +3,21 @@
 const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
 const fakeApi = require("../helpers/fake-api");
+const config = require("exp-config");
 
 function handler() {
   return {type: "i-was-here", id: "my-guid"};
 }
 
+const storeConfig = config.jobStorage;
 Feature("Internal messasges", () => {
+  before(() => {
+    config.jobStorage = "http";
+  });
+  after(() => {
+    config.jobStorage = storeConfig;
+  });
+
   afterEachScenario(stop);
 
   Scenario("Responding to a processed message", () => {
