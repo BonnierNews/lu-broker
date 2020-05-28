@@ -52,7 +52,10 @@ function sleep(ms) {
   });
 }
 Feature("Spawn flows with triggers", () => {
-  afterEachScenario(stop);
+  afterEachScenario(async () => {
+    await stop();
+    brokerServer.reset();
+  });
   Scenario("Trigger a flow by returning a trigger message from handler", () => {
     const result = [];
     function addWithDelay(i, delay = 0) {
@@ -86,9 +89,6 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    after(() => {
-      brokerServer.reset();
-    });
     let flowMessages, donePromise, triggerMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
@@ -177,9 +177,6 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    after(() => {
-      brokerServer.reset();
-    });
     let flowMessages, subFlowMessages, donePromise, triggerMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
@@ -287,9 +284,6 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    after(() => {
-      brokerServer.reset();
-    });
     let flowMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
