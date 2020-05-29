@@ -18,7 +18,6 @@
     "ioredis": "^4.17.1",
     "lu-logger": "github:BonnierNews/lu-logger",
     "prom-client": "^12.0.0",
-    "redis": "^3.0.2",
     "request": "^2.88.2",
     "uuid": "^7.0.3"
   },
