@@ -1,14 +1,17 @@
 "use strict";
 const storage = require("../../lib/redis/redis-job-storage");
+const buildContext = require("../../lib/context");
 
 describe("redis job storage", () => {
-  beforeEach(storage.reset);
+  const context = buildContext({meta: {correlationId: "corrId"}}, {fields: {routingKey: "routingKey"}, properties: {}});
+
+  afterEach(storage.reset);
   it("should store a parent", async () => {
     const parent = await storage.storeParent({
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context
     });
     parent.should.eql({
       childCount: 2,
@@ -19,11 +22,11 @@ describe("redis job storage", () => {
   });
 
   it("should store a child job", async () => {
-    storage.storeParent({
+    await storage.storeParent({
       message: "msg",
       responseKey: "response",
       childCount: 1,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context
     });
 
     const parent = await storage.storeChild(
@@ -33,7 +36,7 @@ describe("redis job storage", () => {
           correlationId: "corrId:0"
         }
       },
-      {retryUnless: () => {}}
+      context
     );
     parent.should.eql({
       childCount: 1,
@@ -45,11 +48,11 @@ describe("redis job storage", () => {
   });
 
   it("should store children as child jobs", async () => {
-    storage.storeParent({
+    await storage.storeParent({
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context
     });
 
     let parent = await storage.storeChild(
@@ -59,7 +62,7 @@ describe("redis job storage", () => {
           correlationId: "corrId:0"
         }
       },
-      {retryUnless: () => {}}
+      context
     );
     parent.should.eql({
       childCount: 2,
@@ -76,7 +79,7 @@ describe("redis job storage", () => {
           correlationId: "corrId:1"
         }
       },
-      {retryUnless: () => {}}
+      context
     );
 
     parent.should.eql({
@@ -89,11 +92,11 @@ describe("redis job storage", () => {
   });
 
   it("should handle multiple saves", async () => {
-    storage.storeParent({
+    await storage.storeParent({
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context
     });
 
     let parent = await storage.storeChild(
@@ -103,7 +106,7 @@ describe("redis job storage", () => {
           correlationId: "corrId:1"
         }
       },
-      {retryUnless: () => {}}
+      context
     );
     parent.should.eql({
       childCount: 2,
@@ -120,7 +123,7 @@ describe("redis job storage", () => {
           correlationId: "corrId:1"
         }
       },
-      {retryUnless: () => {}}
+      context
     );
 
     parent.should.eql({
