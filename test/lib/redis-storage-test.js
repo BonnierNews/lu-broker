@@ -33,7 +33,7 @@ describe("redis job storage", () => {
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:0"
+          correlationId: "corrId:22"
         }
       },
       context
