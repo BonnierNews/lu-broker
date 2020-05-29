@@ -130,7 +130,6 @@ describe("memory storage", () => {
 
     parent.should.eql({
       childCount: 2,
-      childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
       responseKey: "response",
