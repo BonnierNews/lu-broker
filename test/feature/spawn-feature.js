@@ -2,7 +2,7 @@
 
 const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
-const brokerServer = require("../helpers/broker-job-server");
+const jobStorage = require("../../lib/job-storage");
 
 const source = {
   type: "order",
@@ -54,7 +54,7 @@ function sleep(ms) {
 Feature("Spawn flows with triggers", () => {
   afterEachScenario(async () => {
     await stop();
-    brokerServer.reset();
+    jobStorage.reset();
   });
   Scenario("Trigger a flow by returning a trigger message from handler", () => {
     const result = [];
@@ -68,7 +68,6 @@ Feature("Spawn flows with triggers", () => {
 
     before(() => {
       crd.resetMock();
-      brokerServer.start();
       start({
         recipes: [
           {
@@ -155,8 +154,6 @@ Feature("Spawn flows with triggers", () => {
 
     before(() => {
       crd.resetMock();
-      brokerServer.start();
-
       start({
         recipes: [
           {
@@ -258,7 +255,6 @@ Feature("Spawn flows with triggers", () => {
 
     before(() => {
       crd.resetMock();
-      brokerServer.start();
       start({
         recipes: [
           {

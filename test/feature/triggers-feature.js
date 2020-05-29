@@ -1,8 +1,8 @@
 "use strict";
 
-const brokerServer = require("../helpers/broker-job-server");
 const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
+const jobStorage = require("../../lib/job-storage");
 
 function handler() {
   return {type: "i-was-here", id: "my-guid"};
@@ -55,8 +55,8 @@ Feature("Triggers", () => {
     };
   }
 
-  before(() => {
-    brokerServer.start();
+  beforeEachScenario(() => {
+    jobStorage.reset();
   });
 
   Scenario("Trigger a flow with a trigger message", () => {

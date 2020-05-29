@@ -23,7 +23,7 @@
       "x-dead-letter-exchange": "DLX"
     }
   },
-  "jobStorage": "http",
+  "jobStorage": "redis",
   "redisConfig": {
     "host": "localhost"
   },

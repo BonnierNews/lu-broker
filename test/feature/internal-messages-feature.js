@@ -2,19 +2,21 @@
 
 const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
-const fakeApi = require("../helpers/fake-api");
+const {reset, storeParent, storeChild} = require("../../lib/job-storage");
 
 function handler() {
   return {type: "i-was-here", id: "my-guid"};
 }
 
 Feature("Internal messasges", () => {
-  afterEachScenario(stop);
+  afterEachScenario(async () => {
+    await stop();
+    await reset();
+  });
 
   Scenario("Responding to a processed message", () => {
     before(() => {
       crd.resetMock();
-      fakeApi.reset();
       start({
         recipes: [
           {
@@ -31,17 +33,23 @@ Feature("Internal messasges", () => {
       flowMessages = crd.subscribe("event.some-name.#");
     });
 
-    And("the broker job server is responding", () => {
-      fakeApi.put("/entity/v2/broker-job/some-correlation-id:event.process.one/0").reply(200, {
-        attributes: {
-          responseKey: "event.some-name.perform.one",
-          message: {id: "orig-message", type: "event", meta: {correlationId: "parent-corr"}},
-          done: true
-        },
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+    And("the broker job server is responding", async () => {
+      await storeParent({
+        responseKey: "event.some-name.perform.one",
+        message: {id: "orig-message", type: "event", meta: {correlationId: "parent-corr"}},
+        childCount: 1,
+        context: {routingKey: "event.process.one", correlationId: "some-correlation-id"}
       });
+      await storeChild(
+        {
+          id: "orig-message",
+          type: "event",
+          meta: {correlationId: "some-correlation-id:0", notifyProcessed: "event.process.one:some-correlation-id"}
+        },
+        {
+          retryUnless: () => {}
+        }
+      );
     });
 
     When("we publish a processed message", async () => {
@@ -49,7 +57,7 @@ Feature("Internal messasges", () => {
         type: "event",
         id: "some-id",
         data: [],
-        meta: {correlationId: "some-correlation-id:0", notifyProcessed: "some-correlation-id:event.process.one"}
+        meta: {correlationId: "some-correlation-id:0", notifyProcessed: "event.process.one:some-correlation-id"}
       });
     });
 
@@ -64,10 +72,6 @@ Feature("Internal messasges", () => {
           correlationId: "parent-corr"
         }
       });
-    });
-
-    And("the job server should have been called", () => {
-      fakeApi.pendingMocks().should.eql([]);
     });
   });
 });
