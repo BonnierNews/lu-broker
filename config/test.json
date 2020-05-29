@@ -24,6 +24,9 @@
     }
   },
   "jobStorage": "http",
+  "redisConfig": {
+    "host": "redis.lu-redis-test.svc"
+  },
   "proxyUrl": "http://api.example.com",
   "sigtermEvent": "test-SIGTERM",
   "shutDownProbeInterval": 10
