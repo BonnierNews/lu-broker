@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,7 @@
     "camelcase": "^6.0.0",
     "exp-amqp-connection": "BonnierNews/exp-amqp-connection#v3.0.0",
     "exp-config": "^3.0.0",
+    "ioredis": "^4.17.1",
     "lu-logger": "github:BonnierNews/lu-logger",
     "prom-client": "^12.0.0",
     "request": "^2.88.2",
@@ -29,6 +30,7 @@
     "eslint-plugin-json": "^2.1.1",
     "eslint-plugin-prettier": "^3.1.3",
     "exp-fake-amqplib": "BonnierNews/exp-fake-amqplib#v3.0.1",
+    "ioredis-mock": "^4.21.0",
     "mocha": "^7.1.2",
     "mocha-cakes-2": "^3.3.0",
     "nock": "^12.0.3",
