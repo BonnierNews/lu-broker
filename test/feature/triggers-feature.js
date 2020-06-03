@@ -284,7 +284,9 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishMessage("trigger.event.some-name", {...source, meta: {...source.meta, notifyProcessed: true}});
+      await crd.publishWithMeta("trigger.event.some-name", source, {
+        headers: {"x-notify-processed": true}
+      });
     });
 
     And("the flow should be completed", () => {
@@ -304,7 +306,7 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: `some-correlation-id:${newCorrId}`,
           parentCorrelationId: "some-correlation-id",
@@ -354,7 +356,7 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: `some-correlation-id:${newCorrId}`,
           parentCorrelationId: "some-correlation-id"
@@ -400,9 +402,57 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: `some-correlation-id`
+        }
+      });
+    });
+  });
+
+  Scenario("Trigger a flow without a generic parent correlation id but parent correlation id in header", () => {
+    before(() => {
+      crd.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [route(".perform.one", handler)]
+          }
+        ]
+      });
+    });
+    let flowMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      flowMessages = crd.subscribe("event.#");
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishWithMeta("trigger.event.some-name", source, {
+        headers: {"x-parent-correlation-id": "this-is-parent"}
+      });
+    });
+
+    And("the flow should be completed", () => {
+      flowMessages.length.should.eql(2);
+      const {msg, key} = flowMessages.pop();
+      key.should.eql("event.some-name.processed");
+      msg.should.eql({
+        type: "event",
+        id: msg.id,
+        data: [
+          {
+            type: "i-was-here",
+            id: "my-guid",
+            occurredAt: msg.data[0].occurredAt,
+            key: "event.some-name.perform.one"
+          }
+        ],
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
+        meta: {
+          correlationId: `some-correlation-id`,
+          parentCorrelationId: "this-is-parent"
         }
       });
     });
@@ -455,7 +505,7 @@ Feature("Triggers", () => {
             key: "event.some-other-name.perform.one"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: "some-correlation-id"
         }
@@ -467,12 +517,7 @@ Feature("Triggers", () => {
       const {msg, key} = triggerMessages.pop();
       key.should.eql("trigger.event.some-name");
       msg.should.eql({
-        ...source,
-        meta: {
-          correlationId: "some-correlation-id:0",
-          notifyProcessed: "event.some-other-name.perform.one:some-correlation-id",
-          parentCorrelationId: "some-correlation-id"
-        }
+        ...source
       });
     });
 
@@ -491,7 +536,7 @@ Feature("Triggers", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: "some-correlation-id:0",
           notifyProcessed: "event.some-other-name.perform.one:some-correlation-id",
