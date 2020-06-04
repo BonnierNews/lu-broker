@@ -7,11 +7,11 @@ const jobStorage = require("../../lib/job-storage");
 const source = {
   type: "order",
   id: "some-id",
-  meta: {correlationId: "some-correlation-id"},
+  meta: {correlationId: "some-order-correlation-id"},
   attributes: {baz: true}
 };
 
-const source2 = {...source, id: "some-other-id"};
+const source2 = {...source, meta: {correlationId: "some-other-order-correlation-id"}, id: "some-other-id"};
 
 function trigger() {
   return {
@@ -104,12 +104,7 @@ Feature("Spawn flows with triggers", () => {
       const {key, msg} = triggerMessages[0];
       key.should.eql("trigger.event.some-sub-name");
       msg.should.eql({
-        ...source,
-        meta: {
-          correlationId: "some-correlation-id:0",
-          notifyProcessed: "event.some-name.perform.one:some-correlation-id",
-          parentCorrelationId: "some-correlation-id"
-        }
+        ...source
       });
     });
 
@@ -195,22 +190,25 @@ Feature("Spawn flows with triggers", () => {
         .map(({msg}) => msg)
         .should.eql([
           {
-            ...source,
-            meta: {
-              correlationId: "some-correlation-id:0",
-              notifyProcessed: "event.some-name.perform.one:some-correlation-id",
-              parentCorrelationId: "some-correlation-id"
-            }
+            ...source
           },
           {
-            ...source2,
-            meta: {
-              correlationId: "some-correlation-id:1",
-              notifyProcessed: "event.some-name.perform.one:some-correlation-id",
-              parentCorrelationId: "some-correlation-id"
-            }
+            ...source2
           }
         ]);
+    });
+
+    And("the trigger messages should carry parent correlation ids and such using headers", () => {
+      triggerMessages[0].meta.properties.correlationId.should.eql(`${source.meta.correlationId}:0`);
+      triggerMessages[0].meta.properties.headers["x-parent-correlation-id"].should.eql(source.meta.correlationId);
+      triggerMessages[0].meta.properties.headers["x-notify-processed"].should.eql(
+        `event.some-name.perform.one:${source.meta.correlationId}`
+      );
+      triggerMessages[1].meta.properties.correlationId.should.eql(`${source.meta.correlationId}:1`);
+      triggerMessages[1].meta.properties.headers["x-parent-correlation-id"].should.eql(source.meta.correlationId);
+      triggerMessages[1].meta.properties.headers["x-notify-processed"].should.eql(
+        `event.some-name.perform.one:${source.meta.correlationId}`
+      );
     });
 
     And("the parent flow should be completed", async () => {

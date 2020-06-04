@@ -80,7 +80,7 @@ Feature("Lamda functions", () => {
             key: "event.some-name.perform.one"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: "some-correlation-id"
         }
@@ -200,7 +200,7 @@ Feature("Lamda functions", () => {
             key: "event.the-coolest-event-ever.perform.three"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: "some-correlation-id"
         }
@@ -271,7 +271,7 @@ Feature("Lamda functions", () => {
             key: "event.first.perform.three"
           }
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes},
+        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
         meta: {
           correlationId: "some-correlation-id"
         }
