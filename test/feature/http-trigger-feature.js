@@ -11,7 +11,7 @@ Feature("Trigger via http", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "trigger-via-http-correlation"},
+    meta: {correlationId: "trigger-via-http-correlation-source"},
     attributes: {baz: true}
   };
   function trigger() {
@@ -48,7 +48,7 @@ Feature("Trigger via http", () => {
 
     let response;
     When("we POST an order via http", async () => {
-      response = await request.post("/trigger/event/some-name", source);
+      response = await request.post("/trigger/event/some-name", source, "trigger-via-http-correlation");
     });
 
     Then("the response should be a 200 OK", () => {
@@ -86,7 +86,7 @@ Feature("Trigger via http", () => {
 
     let response;
     When("we POST an order via http", async () => {
-      response = await request.post("/trigger/some-generic-name", source);
+      response = await request.post("/trigger/some-generic-name", source, "trigger-via-http-correlation");
     });
 
     Then("the response should be a 200 OK", () => {
