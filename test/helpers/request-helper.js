@@ -11,15 +11,15 @@ function get(path) {
     .expect("Content-Type", /application\/json/);
 }
 
-function post(path, body) {
+function post(path, body, correlationId) {
   const callingFunction = caller();
   return supertest(app)
     .post(path)
     .set("Content-Type", "application/json")
-    .set("correlation-id", callingFunction)
+    .set("correlation-id", correlationId || callingFunction)
     .send(body)
     .expect("Content-Type", /application\/json/)
-    .expect("correlation-id", callingFunction);
+    .expect("correlation-id", correlationId || callingFunction);
 }
 
 function raw() {
