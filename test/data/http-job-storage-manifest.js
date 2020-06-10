@@ -7,6 +7,7 @@ const storeParent = {
     body: {
       childCount: 2,
       id: "routingKey:corrId",
+      correlationId: "corrId",
       message: "msg",
       responseKey: "response"
     }
