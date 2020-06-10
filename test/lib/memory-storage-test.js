@@ -14,6 +14,7 @@ describe("memory storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       children: parent.children
     });
@@ -39,6 +40,7 @@ describe("memory storage", () => {
     parent.should.eql({
       childCount: 1,
       id: "routingKey:corrId",
+      correlationId: "corrId",
       message: "msg",
       responseKey: "response",
       done: true,
@@ -67,6 +69,7 @@ describe("memory storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: false,
       children: parent.children
@@ -86,6 +89,7 @@ describe("memory storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: true,
       children: parent.children
@@ -113,6 +117,7 @@ describe("memory storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: false,
       children: parent.children
@@ -132,6 +137,7 @@ describe("memory storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: false,
       children: parent.children

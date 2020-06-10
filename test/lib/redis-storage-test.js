@@ -16,6 +16,7 @@ describe("redis job storage", () => {
     parent.should.eql({
       childCount: 2,
       id: "routingKey:corrId",
+      correlationId: "corrId",
       message: "msg",
       responseKey: "response"
     });
@@ -42,6 +43,7 @@ describe("redis job storage", () => {
       childCount: 1,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: true
     });
@@ -68,6 +70,7 @@ describe("redis job storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: false
     });
@@ -86,6 +89,7 @@ describe("redis job storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: true
     });
@@ -112,6 +116,7 @@ describe("redis job storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: false
     });
@@ -130,6 +135,7 @@ describe("redis job storage", () => {
       childCount: 2,
       id: "routingKey:corrId",
       message: "msg",
+      correlationId: "corrId",
       responseKey: "response",
       done: false
     });
