@@ -1,6 +1,8 @@
 "use strict";
 const storage = require("../../lib/redis/redis-job-storage");
+const redis = require("../../lib/redis/redis");
 const buildContext = require("../../lib/context");
+const {assertRetry} = require("../../lib/test-helpers");
 
 describe("redis job storage", () => {
   const context = buildContext({meta: {correlationId: "corrId"}}, {fields: {routingKey: "routingKey"}, properties: {}});
@@ -138,6 +140,62 @@ describe("redis job storage", () => {
       correlationId: "corrId",
       responseKey: "response",
       done: false
+    });
+  });
+
+  describe("envoy partitioning handling", () => {
+    it("should handle parent is absent when storing child", async () => {
+      await storage.storeParent({
+        message: "msg",
+        responseKey: "response",
+        childCount: 2,
+        context
+      });
+      redis.del(`${context.routingKey}:${context.correlationId}`);
+
+      await assertRetry(async () => {
+        await storage.storeChild(
+          {
+            meta: {
+              notifyProcessed: "routingKey:corrId",
+              correlationId: "corrId:0"
+            }
+          },
+          context
+        );
+      });
+    });
+
+    it("should handle child is absent when storing child", async () => {
+      await storage.storeParent({
+        message: "msg",
+        responseKey: "response",
+        childCount: 2,
+        context
+      });
+      await storage.storeChild(
+        {
+          meta: {
+            notifyProcessed: "routingKey:corrId",
+            correlationId: "corrId:1"
+          }
+        },
+        context
+      );
+
+      redis.del(`children-${context.routingKey}:${context.correlationId}`);
+
+      await assertRetry(async () => {
+        await storage.storeChild(
+          {
+            meta: {
+              notifyProcessed: "routingKey:corrId",
+              correlationId: "corrId:0"
+            }
+          },
+          context
+        );
+      });
     });
   });
 });
