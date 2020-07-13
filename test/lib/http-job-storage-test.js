@@ -10,7 +10,10 @@ describe("http storage", () => {
   it("should store a parent", async () => {
     const mount = fakeApi.mount(manifest.entity.storeParent);
     const parent = await storage.storeParent({
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
       childCount: 2,
       context
@@ -20,15 +23,22 @@ describe("http storage", () => {
     parent.should.eql({
       childCount: 2,
       id: "routingKey:corrId",
-      message: "msg",
-      responseKey: "response"
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
+      responseKey: "response",
+      correlationId: "corrId"
     });
   });
 
   it("should store a parent with conflict", async () => {
     const mount = fakeApi.mount(manifest.entity.storeParentConflict);
     const parent = await storage.storeParent({
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
       childCount: 2,
       context
@@ -38,8 +48,12 @@ describe("http storage", () => {
     parent.should.eql({
       childCount: 2,
       id: "routingKey:corrId",
-      message: "msg",
-      responseKey: "response"
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
+      responseKey: "response",
+      correlationId: "corrId"
     });
   });
 
@@ -47,9 +61,12 @@ describe("http storage", () => {
     fakeApi.mount(manifest.entity.storeParent);
     fakeApi.mount(manifest.entity.storeChild);
     await storage.storeParent({
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
-      childCount: 1,
+      childCount: 2,
       context
     });
     const parent = await storage.storeChild(
@@ -62,10 +79,14 @@ describe("http storage", () => {
       context
     );
     parent.should.eql({
-      childCount: 1,
+      childCount: 2,
       id: "routingKey:corrId",
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
+      correlationId: "corrId",
       done: true
     });
   });
@@ -74,9 +95,12 @@ describe("http storage", () => {
     fakeApi.mount(manifest.entity.storeParent);
     fakeApi.mount(manifest.entity.storeChildConflict);
     await storage.storeParent({
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
-      childCount: 1,
+      childCount: 2,
       context
     });
     const parent = await storage.storeChild(
@@ -89,10 +113,14 @@ describe("http storage", () => {
       context
     );
     parent.should.eql({
-      childCount: 1,
+      childCount: 2,
       id: "routingKey:corrId",
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
+      correlationId: "corrId",
       done: true
     });
   });
@@ -101,7 +129,10 @@ describe("http storage", () => {
     fakeApi.mount(manifest.entity.storeParent);
     fakeApi.mount(manifest.entity.storeChildNotFound);
     await storage.storeParent({
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
       childCount: 1,
       context
@@ -123,7 +154,10 @@ describe("http storage", () => {
     fakeApi.mount(manifest.entity.storeParent);
     fakeApi.mount({...manifest.entity.storeChildNotFound, statusCode: 500});
     await storage.storeParent({
-      message: "msg",
+      message: {
+        id: "some-id",
+        type: "some-type"
+      },
       responseKey: "response",
       childCount: 1,
       context
@@ -145,7 +179,10 @@ describe("http storage", () => {
     fakeApi.mount({...manifest.entity.storeParent, statusCode: 500});
     await assertRetry(async () => {
       await storage.storeParent({
-        message: "msg",
+        message: {
+          id: "some-id",
+          type: "some-type"
+        },
         responseKey: "response",
         childCount: 2,
         context
@@ -157,7 +194,10 @@ describe("http storage", () => {
     fakeApi.mount({...manifest.entity.storeParent, statusCode: 404});
     await assertRetry(async () => {
       await storage.storeParent({
-        message: "msg",
+        message: {
+          id: "some-id",
+          type: "some-type"
+        },
         responseKey: "response",
         childCount: 2,
         context
