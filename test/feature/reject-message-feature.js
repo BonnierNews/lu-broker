@@ -1,7 +1,10 @@
 "use strict";
 
+const sandbox = require("sinon").createSandbox();
 const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
+const jobStorage = require("../../lib/job-storage");
+const memoryJobStorage = require("../../lib/memory-job-storage");
 
 function rejectHandler(message, context) {
   const {rejectUnless} = context;
@@ -9,7 +12,11 @@ function rejectHandler(message, context) {
 }
 
 Feature("Reject message", () => {
-  afterEachScenario(stop);
+  afterEachScenario(async () => {
+    await stop();
+    jobStorage.reset();
+    sandbox.restore();
+  });
   const source = {
     type: "order",
     id: "some-id",
@@ -146,6 +153,124 @@ Feature("Reject message", () => {
     });
     And("the rejected message should have correct routingKey", () => {
       rejectedMessages[0].meta.fields.routingKey.should.eql("trigger.some-name");
+    });
+  });
+
+  Scenario("Rejecting an internal message (job storage failure)", () => {
+    const result = [];
+    let tries = 0;
+    function addWithDelay(i, delay = 0) {
+      return async () => {
+        await sleep(delay);
+        result.push(i);
+        return {type: "baz", id: `my-guid-${i}`};
+      };
+    }
+    function addWithTry(i, delay = 0) {
+      return async () => {
+        tries = tries + 10;
+        const newDelay = delay + tries;
+        await sleep(newDelay);
+        result.push(i);
+        return {type: "baz", id: `my-try-${newDelay}`};
+      };
+    }
+    function triggerMultiple() {
+      return {
+        type: "trigger",
+        id: "event.some-sub-name",
+        source: [source],
+        meta: {
+          correlationId: "some-correlation-id"
+        }
+      };
+    }
+
+    before(() => {
+      sandbox.stub(memoryJobStorage, "storeChild").throws(new Error("borken storage"));
+      crd.resetMock();
+      reject.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [
+              route(".perform.first", addWithDelay(0, 1)),
+              route(".perform.one", triggerMultiple),
+              route(".perform.two", addWithDelay(2, 1))
+            ]
+          },
+          {
+            namespace: "event",
+            name: "some-sub-name",
+            sequence: [route(".perform.one", addWithTry(1, 5))]
+          }
+        ]
+      });
+    });
+    let rejectedMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      rejectedMessages = reject.subscribe("#");
+    });
+
+    let subFlowMessages, subFlowPromise;
+    And("we are listening for messages on the event namespace", () => {
+      subFlowMessages = crd.subscribe("event.some-sub-name.#");
+      subFlowPromise = new Promise((resolve) => crd.subscribe("event.some-sub-name.processed", resolve));
+    });
+
+    When("we publish an order on a trigger key", async () => {
+      await crd.publishMessage("trigger.event.some-name", source);
+    });
+
+    And("the child flow should be completed", async () => {
+      await subFlowPromise;
+      subFlowMessages.length.should.eql(2);
+      subFlowMessages
+        .filter(({key}) => key === "event.some-sub-name.processed")
+        .map(({msg}) => msg.data)
+        .forEach((data, idx) => {
+          data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
+        });
+    });
+
+    Then("the internal message should be rejected", () => {
+      rejectedMessages.length.should.eql(1);
+      rejectedMessages[0].key.should.eql("event.some-sub-name.processed");
+    });
+
+    And("the reject queue should have a nacked message", () => {
+      reject.nackedMessages.should.have.length(1);
+      reject.nackedMessages[0].should.eql(rejectedMessages[0].msg);
+    });
+
+    And("the rejected message should not longer have a reject key", () => {
+      rejectedMessages[0].meta.properties.should.not.have.property("type");
+    });
+
+    And("the rejected message should have x-death set", () => {
+      rejectedMessages[0].meta.properties.headers.should.have.property("x-death");
+    });
+    And("the rejected message should have the expected x-death", () => {
+      const [xDeath] = rejectedMessages[0].meta.properties.headers["x-death"];
+      xDeath.should.eql({
+        count: 1,
+        exchange: "CRDExchangeTest",
+        queue: "lu-broker-internal-test",
+        reason: "rejected",
+        "routing-keys": ["event.some-sub-name.processed"],
+        time: xDeath.time
+      });
+    });
+    And("the rejected message should have x-routing-key set", () => {
+      rejectedMessages[0].meta.properties.headers.should.have.property(
+        "x-routing-key",
+        "event.some-sub-name.processed"
+      );
+    });
+    And("the rejected message should have correct routingKey", () => {
+      rejectedMessages[0].meta.fields.routingKey.should.eql("event.some-sub-name.processed");
     });
   });
 
@@ -330,3 +455,9 @@ Feature("Reject message", () => {
     });
   });
 });
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
