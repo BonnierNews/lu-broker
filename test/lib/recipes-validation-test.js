@@ -264,7 +264,10 @@ describe("recipes-repo validation", () => {
     it("should not allow unknown namespaces", () => {
       (function () {
         recipesRepo.init([events[0], {...events[1], namespace: "foobar"}]);
-      }.should.throw(Error, 'value: "foobar" detail: "[1].namespace" must be one of [event, action, sequence]'));
+      }.should.throw(
+        Error,
+        'value: "foobar" detail: "[1].namespace" must be one of [event, action, sequence, sub-sequence]'
+      ));
     });
     it("should allow known namespaces", () => {
       (function () {
@@ -278,6 +281,16 @@ describe("recipes-repo validation", () => {
             namespace: "action",
             name: "two",
             sequence: [route(".perform.second", passThru)]
+          },
+          {
+            namespace: "sequence",
+            name: "three",
+            sequence: [route(".perform.third", passThru)]
+          },
+          {
+            namespace: "sub-sequence",
+            name: "four",
+            sequence: [route(".perform.fourth", passThru)]
           }
         ]);
       }.should.not.throw(Error));
