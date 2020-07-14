@@ -16,7 +16,7 @@ const source2 = {...source, meta: {correlationId: "some-other-order-correlation-
 function trigger() {
   return {
     type: "trigger",
-    id: "event.some-sub-name",
+    id: "sub-sequence.some-sub-name",
     source,
     meta: {
       correlationId: "some-correlation-id"
@@ -27,7 +27,7 @@ function trigger() {
 function triggerMultiple() {
   return {
     type: "trigger",
-    id: "event.some-sub-name",
+    id: "sub-sequence.some-sub-name",
     source: [source, source2],
     meta: {
       correlationId: "some-correlation-id"
@@ -38,7 +38,7 @@ function triggerMultiple() {
 function subTrigger() {
   return {
     type: "trigger",
-    id: "event.grand-child",
+    id: "sub-sequence.grand-child",
     source,
     meta: {
       correlationId: "some-correlation-id"
@@ -80,7 +80,7 @@ Feature("Spawn flows with triggers", () => {
             ]
           },
           {
-            namespace: "event",
+            namespace: "sub-sequence",
             name: "some-sub-name",
             sequence: [route(".perform.one", addWithDelay(1, 5))]
           }
@@ -102,7 +102,7 @@ Feature("Spawn flows with triggers", () => {
     Then("we should get a trigger message", () => {
       triggerMessages.should.have.length(1);
       const {key, msg} = triggerMessages[0];
-      key.should.eql("trigger.event.some-sub-name");
+      key.should.eql("trigger.sub-sequence.some-sub-name");
       msg.should.eql({
         ...source
       });
@@ -117,7 +117,7 @@ Feature("Spawn flows with triggers", () => {
         .map(({type, id}) => ({type, id}))
         .should.eql([
           {type: "baz", id: "my-guid-0"},
-          {type: "trigger", id: "event.some-sub-name"},
+          {type: "trigger", id: "sub-sequence.some-sub-name"},
           {type: "baz", id: "my-guid-2"}
         ]);
     });
@@ -161,7 +161,7 @@ Feature("Spawn flows with triggers", () => {
             ]
           },
           {
-            namespace: "event",
+            namespace: "sub-sequence",
             name: "some-sub-name",
             sequence: [route(".perform.one", addWithTry(1, 5))]
           }
@@ -172,7 +172,7 @@ Feature("Spawn flows with triggers", () => {
     let flowMessages, subFlowMessages, donePromise, triggerMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-name.#");
-      subFlowMessages = crd.subscribe("event.some-sub-name.#");
+      subFlowMessages = crd.subscribe("sub-sequence.some-sub-name.#");
       donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
     });
 
@@ -220,7 +220,7 @@ Feature("Spawn flows with triggers", () => {
         .map(({type, id, times}) => ({type, id, times}))
         .should.eql([
           {type: "baz", id: "my-guid-0", times: undefined},
-          {type: "trigger", id: "event.some-sub-name", times: 2},
+          {type: "trigger", id: "sub-sequence.some-sub-name", times: 2},
           {type: "baz", id: "my-guid-2", times: undefined}
         ]);
     });
@@ -229,7 +229,7 @@ Feature("Spawn flows with triggers", () => {
       await donePromise;
       subFlowMessages.length.should.eql(4);
       subFlowMessages
-        .filter(({key}) => key === "event.some-sub-name.processed")
+        .filter(({key}) => key === "sub-sequence.some-sub-name.processed")
         .map(({msg}) => msg.data)
         .forEach((data, idx) => {
           data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
@@ -265,12 +265,12 @@ Feature("Spawn flows with triggers", () => {
             ]
           },
           {
-            namespace: "event",
+            namespace: "sub-sequence",
             name: "some-sub-name",
             sequence: [route(".perform.one", subTrigger), route(".perform.two", addWithDelay(3, 1))]
           },
           {
-            namespace: "event",
+            namespace: "sub-sequence",
             name: "grand-child",
             sequence: [route(".perform.one", addWithDelay(4, 2))]
           }
@@ -296,7 +296,7 @@ Feature("Spawn flows with triggers", () => {
         .map(({type, id}) => ({type, id}))
         .should.eql([
           {type: "baz", id: "my-guid-0"},
-          {type: "trigger", id: "event.some-sub-name"},
+          {type: "trigger", id: "sub-sequence.some-sub-name"},
           {type: "baz", id: "my-guid-2"}
         ]);
     });

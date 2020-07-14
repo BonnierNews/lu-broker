@@ -178,7 +178,7 @@ Feature("Reject message", () => {
     function triggerMultiple() {
       return {
         type: "trigger",
-        id: "event.some-sub-name",
+        id: "sub-sequence.some-sub-name",
         source: [source],
         meta: {
           correlationId: "some-correlation-id"
@@ -193,7 +193,7 @@ Feature("Reject message", () => {
       start({
         recipes: [
           {
-            namespace: "event",
+            namespace: "sequence",
             name: "some-name",
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
@@ -202,7 +202,7 @@ Feature("Reject message", () => {
             ]
           },
           {
-            namespace: "event",
+            namespace: "sub-sequence",
             name: "some-sub-name",
             sequence: [route(".perform.one", addWithTry(1, 5))]
           }
@@ -210,25 +210,25 @@ Feature("Reject message", () => {
       });
     });
     let rejectedMessages;
-    Given("we are listening for messages on the event namespace", () => {
+    Given("we are listening for messages on the reject namespace", () => {
       rejectedMessages = reject.subscribe("#");
     });
 
     let subFlowMessages, subFlowPromise;
-    And("we are listening for messages on the event namespace", () => {
-      subFlowMessages = crd.subscribe("event.some-sub-name.#");
-      subFlowPromise = new Promise((resolve) => crd.subscribe("event.some-sub-name.processed", resolve));
+    And("we are listening for messages on the sub-sequence namespace", () => {
+      subFlowMessages = crd.subscribe("sub-sequence.some-sub-name.#");
+      subFlowPromise = new Promise((resolve) => crd.subscribe("sub-sequence.some-sub-name.processed", resolve));
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishMessage("trigger.event.some-name", source);
+      await crd.publishMessage("trigger.sequence.some-name", source);
     });
 
     And("the child flow should be completed", async () => {
       await subFlowPromise;
       subFlowMessages.length.should.eql(2);
       subFlowMessages
-        .filter(({key}) => key === "event.some-sub-name.processed")
+        .filter(({key}) => key === "sequence.some-sub-name.processed")
         .map(({msg}) => msg.data)
         .forEach((data, idx) => {
           data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
@@ -237,7 +237,7 @@ Feature("Reject message", () => {
 
     Then("the internal message should be rejected", () => {
       rejectedMessages.length.should.eql(1);
-      rejectedMessages[0].key.should.eql("event.some-sub-name.processed");
+      rejectedMessages[0].key.should.eql("sub-sequence.some-sub-name.processed");
     });
 
     And("the reject queue should have a nacked message", () => {
@@ -259,18 +259,18 @@ Feature("Reject message", () => {
         exchange: "CRDExchangeTest",
         queue: "lu-broker-internal-test",
         reason: "rejected",
-        "routing-keys": ["event.some-sub-name.processed"],
+        "routing-keys": ["sub-sequence.some-sub-name.processed"],
         time: xDeath.time
       });
     });
     And("the rejected message should have x-routing-key set", () => {
       rejectedMessages[0].meta.properties.headers.should.have.property(
         "x-routing-key",
-        "event.some-sub-name.processed"
+        "sub-sequence.some-sub-name.processed"
       );
     });
     And("the rejected message should have correct routingKey", () => {
-      rejectedMessages[0].meta.fields.routingKey.should.eql("event.some-sub-name.processed");
+      rejectedMessages[0].meta.fields.routingKey.should.eql("sub-sequence.some-sub-name.processed");
     });
   });
 
