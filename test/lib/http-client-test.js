@@ -76,6 +76,22 @@ describe("http-client, asserted", () => {
       const result = await http.asserted[method.toLowerCase()]({path: "/some/path", body: {correlationId}});
       result.should.eql({ok: true});
     });
+    it("should be possible to override correlationId", async () => {
+      const customCorrelationId = "custom-correlation-id";
+      fakeApi
+        .get("/some/path")
+        .matchHeader("correlation-id", (val) => {
+          val.should.eql(customCorrelationId);
+          return val;
+        })
+        .matchHeader("x-debug-meta-routing-key", (val) => {
+          val.should.eql(routingKey);
+          return val;
+        })
+        .reply(200, {ok: true});
+      const result = await http.get({path: "/some/path", correlationId: customCorrelationId});
+      result.body.should.eql({ok: true});
+    });
   });
 
   afterEach(fakeApi.reset);
