@@ -42,7 +42,11 @@ function start({recipes, triggers, useParentCorrelationId}) {
   crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
   reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
 
-  internal.subscribe(recipeMap.processedKeys(), internalQueueName, handleMessageWrapper(handleInteralMessage));
+  internal.subscribe(
+    [...recipeMap.processedKeys(), ...recipeMap.processedUnrecoverableKeys()],
+    internalQueueName,
+    handleMessageWrapper(handleInteralMessage)
+  );
 
   const routes = require("./lib/server/routes")(triggerKeys);
   server = require("./lib/server/http-server")(routes);
