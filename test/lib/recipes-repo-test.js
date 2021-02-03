@@ -102,6 +102,28 @@ describe("recipes-repo", () => {
       repo.processedKeys().should.eql(["event.baz.processed", "event.bar.processed", "event.unrecoverable.processed"]);
     });
   });
+
+  describe("processedUnrecoverableKeys", () => {
+    it("should return empty if no events", () => {
+      const nullRepo = recipesRepo.init([]);
+      nullRepo.processedUnrecoverableKeys().should.eql([]);
+    });
+
+    it("should return nothing if no events", () => {
+      const nullRepo = recipesRepo.init([], {"trigger.baz": passThru});
+      nullRepo.processedUnrecoverableKeys().should.eql([]);
+    });
+
+    it("should return each recipe key with an unrecoverable handler as keys", () => {
+      repo
+        .processedUnrecoverableKeys()
+        .should.eql([
+          "event.unrecoverable.validate.one.unrecoverable.processed",
+          "event.unrecoverable.event.baz.perform.one.unrecoverable.processed",
+          "event.unrecoverable.perform.two.unrecoverable.processed"
+        ]);
+    });
+  });
   describe("first", () => {
     it("should return empty if no events", () => {
       const nullRepo = recipesRepo.init([]);
