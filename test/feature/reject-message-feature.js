@@ -187,7 +187,9 @@ Feature("Reject message", () => {
     }
 
     before(() => {
-      sandbox.stub(memoryJobStorage, "storeChild").throws(new Error("borken storage"));
+      const error = new Error("borken storage");
+      error.rejected = true;
+      sandbox.stub(memoryJobStorage, "storeChild").throws(error);
       crd.resetMock();
       reject.resetMock();
       start({
