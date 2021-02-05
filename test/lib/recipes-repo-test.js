@@ -170,6 +170,38 @@ describe("recipes-repo", () => {
     });
   });
 
+  describe("workerQueues", () => {
+    const otherRepo = recipesRepo.init([
+      {
+        namespace: "event",
+        name: "dad",
+        sequence: [route(".perform.one", passThru)]
+      },
+      {
+        namespace: "sub-sequence",
+        name: "one",
+        sequence: [route(".perform.two", passThru)]
+      },
+      {
+        namespace: "sub-sequence",
+        name: "two",
+        sequence: [route(".perform.three", passThru)]
+      }
+    ]);
+    it("should key keys for sub-sequences", () => {
+      otherRepo
+        .workerQueues()
+        .map(({key}) => key)
+        .should.eql(["wq.trigger.one", "wq.trigger.two"]);
+    });
+    it("should get queuenames for sub-sequences", () => {
+      otherRepo
+        .workerQueues()
+        .map(({queue}) => queue)
+        .should.eql(["lu-broker-workqueue-one-test", "lu-broker-workqueue-two-test"]);
+    });
+  });
+
   describe("getUnrecoverableHandler", () => {
     before(() => {
       repo = recipesRepo.init(events, triggers);
