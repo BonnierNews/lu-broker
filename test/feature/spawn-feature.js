@@ -429,4 +429,73 @@ Feature("Spawn flows with triggers", () => {
       unrecoverable.length.should.eql(1);
     });
   });
+
+  Scenario("Trigger a flow and delay execution of children", () => {
+    const result = [];
+    function addWithDelay(i, delay = 0) {
+      return async () => {
+        await sleep(delay);
+        result.push(i);
+        return {type: "baz", id: `my-guid-${i}`};
+      };
+    }
+    let concurrent = 0;
+    function brittleFn(input) {
+      const timeout = 2;
+      if (concurrent++ > 0) {
+        throw new Error("Too many requests");
+      }
+      setTimeout(() => {
+        result.push(input.source.id);
+        concurrent--;
+      }, timeout);
+    }
+
+    before(() => {
+      crd.resetMock();
+      start({
+        recipes: [
+          {
+            namespace: "event",
+            name: "some-name",
+            sequence: [
+              route(".perform.first", addWithDelay(0, 1)),
+              route(".perform.one", triggerMultiple),
+              route(".perform.two", addWithDelay(2, 1))
+            ]
+          },
+          {
+            namespace: "sub-sequence",
+            name: "some-sub-name",
+            sequence: [route(".perform.one", brittleFn)]
+          }
+        ]
+      });
+    });
+
+    let subFlowMessages, donePromise, triggerMessages;
+    Given("we are listening for messages on the event namespace", () => {
+      subFlowMessages = crd.subscribe("sub-sequence.some-sub-name.#");
+      donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
+    });
+
+    When("we publish an order on the other events a trigger key", async () => {
+      await crd.publishMessage("trigger.event.some-name", source);
+      triggerMessages = crd.subscribe("trigger.#");
+    });
+
+    Then("we should get 2 trigger messages", () => {
+      triggerMessages.should.have.length(2);
+    });
+
+    And("the 2 child flows should be completed", async () => {
+      await donePromise;
+      subFlowMessages.length.should.eql(4);
+      subFlowMessages.filter(({key}) => key === "sub-sequence.some-sub-name.processed").length.should.eql(2);
+    });
+
+    And("the handlers should have been triggered in correct order", () => {
+      result.should.eql([0, "some-id", "some-other-id", 2]);
+    });
+  });
 });
