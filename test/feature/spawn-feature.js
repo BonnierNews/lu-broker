@@ -473,7 +473,7 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    let subFlowMessages, donePromise, triggerMessages;
+    let subFlowMessages, donePromise;
     Given("we are listening for messages on the event namespace", () => {
       subFlowMessages = crd.subscribe("sub-sequence.some-sub-name.#");
       donePromise = new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
@@ -481,11 +481,6 @@ Feature("Spawn flows with triggers", () => {
 
     When("we publish an order on the other events a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
-      triggerMessages = crd.subscribe("trigger.#");
-    });
-
-    Then("we should get 2 trigger messages", () => {
-      triggerMessages.should.have.length(2);
     });
 
     And("the 2 child flows should be completed", async () => {
