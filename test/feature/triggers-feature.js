@@ -2,6 +2,7 @@
 
 const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
+const {waitForMessage, reset} = require("../helpers/rabbit-helper");
 const jobStorage = require("../../lib/job-storage");
 
 function handler() {
@@ -68,13 +69,14 @@ Feature("Triggers", () => {
     });
   }
 
-  beforeEachScenario(() => {
+  beforeEachScenario(async () => {
     jobStorage.reset();
+    await reset();
   });
 
-  Scenario("Trigger a flow with a trigger message", () => {
+  Scenario.only("Trigger a flow with a trigger message", () => {
     before(() => {
-      crd.resetMock();
+      //crd.resetMock();
       start({
         triggers: {
           "trigger.some-generic-name": trigger
@@ -88,17 +90,18 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, donePromise;
     Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.#");
+      donePromise = waitForMessage("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-generic-name", source);
     });
 
-    And("the flow should be completed", () => {
-      flowMessages.length.should.eql(2);
+    And("the flow should be completed", async () => {
+      flowMessages = await donePromise;
+      flowMessages.length.should.eql(1);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
@@ -122,7 +125,6 @@ Feature("Triggers", () => {
 
   Scenario("Trigger a flow with a trigger message, async trigger", () => {
     before(() => {
-      crd.resetMock();
       start({
         triggers: {
           "trigger.some-generic-name": triggerAsync
@@ -136,17 +138,18 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, donePromise;
     Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.#");
+      donePromise = waitForMessage("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-generic-name", source);
     });
 
-    And("the flow should be completed", () => {
-      flowMessages.length.should.eql(2);
+    And("the flow should be completed", async () => {
+      flowMessages = await donePromise;
+      flowMessages.length.should.eql(1);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
@@ -170,7 +173,6 @@ Feature("Triggers", () => {
 
   Scenario("Trigger a flow with a trigger message, spawn multiple sequences (2)", () => {
     before(() => {
-      crd.resetMock();
       start({
         triggers: {
           "trigger.some-generic-name": triggerMultiple
@@ -184,16 +186,17 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, donePromise;
     Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.#");
+      donePromise = waitForMessage("event.#", 4);
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 2});
     });
 
-    And("the flow should be completed", () => {
+    And("the flow should be completed", async () => {
+      flowMessages = await donePromise;
       flowMessages.length.should.eql(4);
       const idxs = flowMessages.filter(({key}) => key === "event.some-name.processed").map(({msg}) => msg.source.index);
       idxs.sort();
