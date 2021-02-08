@@ -91,8 +91,9 @@ Feature("Triggers", () => {
       });
     });
     let flowMessages, donePromise;
-    Given("we are listening for messages on the event namespace", () => {
-      donePromise = waitForMessage("event.some-name.processed");
+    Given("we are listening for messages on the event namespace", async () => {
+      const fn = await waitForMessage("event.some-name.processed");
+      donePromise = fn();
     });
 
     When("we publish an order on a trigger key", async () => {
@@ -139,8 +140,8 @@ Feature("Triggers", () => {
       });
     });
     let flowMessages, donePromise;
-    Given("we are listening for messages on the event namespace", () => {
-      donePromise = waitForMessage("event.some-name.processed");
+    Given("we are listening for messages on the event namespace", async () => {
+      donePromise = (await waitForMessage("event.some-name.processed"))();
     });
 
     When("we publish an order on a trigger key", async () => {
@@ -187,8 +188,8 @@ Feature("Triggers", () => {
       });
     });
     let flowMessages, donePromise;
-    Given("we are listening for messages on the event namespace", () => {
-      donePromise = waitForMessage("event.#", 4);
+    Given("we are listening for messages on the event namespace", async () => {
+      donePromise = (await waitForMessage("event.#", 4))();
     });
 
     When("we publish an order on a trigger key", async () => {
@@ -295,16 +296,17 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
-    Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.#");
+    let donePromise;
+    Given("we are listening for messages on the event namespace", async () => {
+      donePromise = (await waitForMessage("event.#", 2))();
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-other-generic-name", source);
     });
 
-    And("the flow should be completed", () => {
+    And("the flow should be completed", async () => {
+      const flowMessages = await donePromise;
       flowMessages.length.should.eql(2);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.some-name.processed");
@@ -342,9 +344,9 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
-    Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.#");
+    let donePromise;
+    Given("we are listening for messages on the event namespace", async () => {
+      donePromise = (await waitForMessage("event.#", 2))();
     });
 
     When("we publish an order on a trigger key", async () => {
@@ -353,7 +355,8 @@ Feature("Triggers", () => {
       });
     });
 
-    And("the flow should be completed", () => {
+    And("the flow should be completed", async () => {
+      const flowMessages = await donePromise;
       flowMessages.length.should.eql(2);
       const {msg, key} = flowMessages.pop();
       key.should.eql("event.some-name.processed");
@@ -382,7 +385,7 @@ Feature("Triggers", () => {
 
   Scenario("Trigger a flow with a global use generic parent correlation id", () => {
     before(() => {
-      crd.resetMock();
+      // crd.resetMock();
       start({
         recipes: [
           {
@@ -394,18 +397,19 @@ Feature("Triggers", () => {
         useParentCorrelationId: true
       });
     });
-    let flowMessages;
-    Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.#");
+    let doneMessage;
+    Given("we are listening for messages on the event namespace", async () => {
+      doneMessage = (await waitForMessage("event.#"))();
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
     });
 
-    And("the flow should be completed", () => {
-      flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+    And("the flow should be completed", async () => {
+      const flowMessage = await doneMessage;
+      flowMessage.length.should.eql(2);
+      const {msg, key} = flowMessage.pop();
       key.should.eql("event.some-name.processed");
       const newCorrId = msg.meta.correlationId.split(":")[1];
       newCorrId.should.be.a.uuid("v4");
