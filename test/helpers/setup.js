@@ -8,9 +8,10 @@ process.env.TZ = "Europe/Stockholm";
 // This file is required with ./test/mocha.opts
 process.env.NODE_ENV = "test";
 
+require("events").EventEmitter.defaultMaxListeners = 256;
+
 // Setup common test libraries
 require("mocha-cakes-2");
-
 const chai = require("chai");
 const chaiExclude = require("chai-exclude");
 chai.use(chaiExclude);

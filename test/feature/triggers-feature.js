@@ -74,7 +74,7 @@ Feature("Triggers", () => {
     await reset();
   });
 
-  Scenario.only("Trigger a flow with a trigger message", () => {
+  Scenario("Trigger a flow with a trigger message", () => {
     before(() => {
       //crd.resetMock();
       start({
