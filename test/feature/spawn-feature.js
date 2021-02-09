@@ -2,7 +2,7 @@
 
 const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
-const {subscribe, reset, purgeQueues} = require("../helpers/rabbit-helper");
+const {subscribe, reset} = require("../helpers/rabbit-helper");
 const jobStorage = require("../../lib/job-storage");
 
 const source = {

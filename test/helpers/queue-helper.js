@@ -48,6 +48,11 @@ function queue(broker) {
   }
 
   function publishMessage(routingKey, message, done) {
+    if (!done) {
+      return new Promise((resolve) => {
+        return publishWithMeta(routingKey, message, {}, resolve);
+      });
+    }
     publishWithMeta(routingKey, message, {}, done);
   }
 
