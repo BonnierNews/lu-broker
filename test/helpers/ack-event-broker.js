@@ -6,6 +6,7 @@ const oldSub = broker.wq.subscribe;
 
 function newSub(routingKeyOrKeys, queue, handler, cb) {
   const functions = [];
+  let first = true;
 
   function next() {
     const fn = functions.shift();
@@ -13,7 +14,8 @@ function newSub(routingKeyOrKeys, queue, handler, cb) {
   }
 
   function addFn(fn) {
-    if (functions.length === 0) {
+    if (first) {
+      first = false;
       return fn();
     }
     functions.push(fn);

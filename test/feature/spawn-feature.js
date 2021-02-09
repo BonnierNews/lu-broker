@@ -432,7 +432,7 @@ Feature("Spawn flows with triggers", () => {
     });
   });
 
-  Scenario.only("Trigger a flow and delay execution of children", () => {
+  Scenario("Trigger a flow and delay execution of children", () => {
     const result = [];
     function addWithDelay(i, delay = 0) {
       return async () => {
