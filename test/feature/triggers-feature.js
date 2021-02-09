@@ -2,6 +2,7 @@
 
 const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
+const {setupWaiter} = require("../helpers/internal-helpers");
 const jobStorage = require("../../lib/job-storage");
 
 function handler() {
@@ -88,13 +89,15 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-generic-name", source);
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -136,13 +139,15 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-generic-name", source);
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -184,13 +189,15 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 2});
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -292,13 +299,15 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.some-other-generic-name", source);
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -339,15 +348,17 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishWithMeta("trigger.event.some-name", source, {
         headers: {"x-notify-processed": true}
       });
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -391,13 +402,16 @@ Feature("Triggers", () => {
         useParentCorrelationId: true
       });
     });
-    let flowMessages;
+
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -439,13 +453,16 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-name", source);
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -484,15 +501,18 @@ Feature("Triggers", () => {
         ]
       });
     });
-    let flowMessages;
+
+    let flowMessages, waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.#");
+      waitForMessages = setupWaiter("event.some-name.processed");
     });
 
     When("we publish an order on a trigger key", async () => {
       await crd.publishWithMeta("trigger.event.some-name", source, {
         headers: {"x-parent-correlation-id": "this-is-parent"}
       });
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
@@ -540,15 +560,17 @@ Feature("Triggers", () => {
     let flowMessages;
     let secondFlowMessages;
     let triggerMessages;
+    let waitForMessages;
     Given("we are listening for messages on the event namespace", () => {
       flowMessages = crd.subscribe("event.some-other-name.#");
       secondFlowMessages = crd.subscribe("event.some-name.#");
+      waitForMessages = setupWaiter("event.some-other-name.processed");
     });
 
     When("we publish an order on the other events a trigger key", async () => {
       await crd.publishMessage("trigger.event.some-other-name", source);
       triggerMessages = crd.subscribe("trigger.#");
-      await new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
+      await waitForMessages;
     });
 
     And("the flow should be completed", () => {
