@@ -1,6 +1,8 @@
 "use strict";
 
 const {crd} = require("../../lib/broker");
+const config = require("exp-config");
+const http = require("../../lib/http");
 
 function subscribe(key, times = 1) {
   return new Promise((setup, reject) => {
@@ -28,13 +30,34 @@ function subscribe(key, times = 1) {
   });
 }
 
-function reset() {
-  return new Promise((resolve) => {
+// get queues that will not auto clear
+async function getQueueNames() {
+  const body = await http.asserted.get({baseUrl: config.rabbit.apiUrl, path: "/api/queues"});
+  return body.filter((row) => !row.auto_delete).map((row) => row.name);
+}
+
+async function purgeQueues() {
+  const promises = [];
+  const names = await getQueueNames();
+  for (const name of names) {
+    promises.push(
+      new Promise((resolve) => {
+        crd.purgeQueue(name, resolve);
+      })
+    );
+  }
+  return Promise.all(promises);
+}
+
+async function reset() {
+  await new Promise((resolve) => {
     crd.unsubscribeAll(() => resolve());
   });
+  await purgeQueues();
 }
 
 module.exports = {
   subscribe,
+  purgeQueues,
   reset
 };

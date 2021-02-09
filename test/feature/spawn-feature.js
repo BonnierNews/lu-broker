@@ -2,7 +2,7 @@
 
 const {start, route, stop} = require("../..");
 const {crd} = require("../helpers/queue-helper");
-const {subscribe, reset} = require("../helpers/rabbit-helper");
+const {subscribe, reset, purgeQueues} = require("../helpers/rabbit-helper");
 const jobStorage = require("../../lib/job-storage");
 
 const source = {
@@ -52,12 +52,14 @@ function sleep(ms) {
     setTimeout(resolve, ms);
   });
 }
+
 Feature("Spawn flows with triggers", () => {
   afterEachScenario(async () => {
     await stop();
     jobStorage.reset();
     await reset();
   });
+
   Scenario("Trigger a flow by returning a trigger message from handler", () => {
     const result = [];
     function addWithDelay(i, delay = 0) {
@@ -69,7 +71,6 @@ Feature("Spawn flows with triggers", () => {
     }
 
     before(() => {
-      crd.resetMock();
       start({
         recipes: [
           {
@@ -146,7 +147,6 @@ Feature("Spawn flows with triggers", () => {
     }
 
     before(() => {
-      crd.resetMock();
       start({
         recipes: [
           {
@@ -174,12 +174,13 @@ Feature("Spawn flows with triggers", () => {
     });
 
     When("we publish an order on the other events a trigger key", async () => {
+      triggerSubscription = await subscribe("trigger.#", 3);
       await crd.publishMessage("trigger.event.some-name", source);
-      triggerSubscription = await subscribe("trigger.#", 2);
-      triggerMessages = await triggerSubscription.waitForMessages();
     });
 
-    Then("we should get 2 trigger messages", () => {
+    Then("we should get 2 trigger messages", async () => {
+      triggerMessages = await triggerSubscription.waitForMessages();
+      triggerMessages.shift();
       triggerMessages.should.have.length(2);
     });
 
@@ -248,12 +249,11 @@ Feature("Spawn flows with triggers", () => {
     }
 
     before(() => {
-      crd.resetMock();
       start({
         recipes: [
           {
             namespace: "event",
-            name: "some-name",
+            name: "some-event-name",
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", trigger),
@@ -274,20 +274,18 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    let flowMessages;
-    Given("we are listening for messages on the event namespace", () => {
-      flowMessages = crd.subscribe("event.some-name.#");
+    let subscription;
+    Given("we are listening for the processed event from the flow namespace", async () => {
+      subscription = await subscribe("event.some-event-name.processed");
     });
 
     When("we publish an order on the other events a trigger key", async () => {
-      await crd.publishMessage("trigger.event.some-name", source);
-      await new Promise((resolve) => crd.subscribe("event.some-name.processed", resolve));
+      await crd.publishMessage("trigger.event.some-event-name", source);
     });
 
-    And("the flow should be completed", () => {
-      flowMessages.length.should.eql(4);
-      const {msg, key} = flowMessages.pop();
-      key.should.eql("event.some-name.processed");
+    And("the flow should be completed", async () => {
+      const [{msg, key}] = await subscription.waitForMessages();
+      key.should.eql("event.some-event-name.processed");
       msg.data
         .map(({type, id}) => ({type, id}))
         .should.eql([
@@ -426,7 +424,7 @@ Feature("Spawn flows with triggers", () => {
     });
   });
 
-  Scenario.only("Trigger a flow and delay execution of children", () => {
+  Scenario("Trigger a flow and delay execution of children", () => {
     const result = [];
     function addWithDelay(i, delay = 0) {
       return async () => {
@@ -448,7 +446,7 @@ Feature("Spawn flows with triggers", () => {
     }
 
     before(() => {
-      crd.resetMock();
+      // crd.resetMock();
       start({
         recipes: [
           {
@@ -469,9 +467,10 @@ Feature("Spawn flows with triggers", () => {
       });
     });
 
-    let subFlowMessages, subscription;
+    let subFlowMessages, subscription, parentSubscription;
     Given("we are listening for messages on the event namespace", async () => {
       subscription = await subscribe("sub-sequence.some-sub-name.#", 4);
+      parentSubscription = await subscribe("event.some-name.processed");
     });
 
     When("we publish an order on the other events a trigger key", async () => {
@@ -479,12 +478,13 @@ Feature("Spawn flows with triggers", () => {
     });
 
     And("the 2 child flows should be completed", async () => {
-      await subscription.waitForMessages();
-      subscription.messages.length.should.eql(4);
+      subFlowMessages = await subscription.waitForMessages();
+      subFlowMessages.length.should.eql(4);
       subFlowMessages.filter(({key}) => key === "sub-sequence.some-sub-name.processed").length.should.eql(2);
     });
 
-    And("the handlers should have been triggered in correct order", () => {
+    And("the handlers should have been triggered in correct order", async () => {
+      await parentSubscription.waitForMessages();
       result.should.eql([0, "some-id", "some-other-id", 2]);
     });
   });

@@ -4,5 +4,6 @@
   "recursive": true,
   "ui": "mocha-cakes-2",
   "exit": true,
-  "require": ["./test/helpers/setup.js"]
+  "require": ["./test/helpers/setup.js"],
+  "file": "./test/helpers/before-hook.js"
 }
