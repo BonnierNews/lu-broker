@@ -49,6 +49,19 @@ async function purgeQueues() {
   return Promise.all(promises);
 }
 
+async function deleteQueues() {
+  const promises = [];
+  const names = await getQueueNames();
+  for (const name of names) {
+    promises.push(
+      new Promise((resolve) => {
+        crd.deleteQueue(name, resolve);
+      })
+    );
+  }
+  return Promise.all(promises);
+}
+
 async function reset() {
   await new Promise((resolve) => {
     crd.unsubscribeAll(() => resolve());
@@ -59,5 +72,6 @@ async function reset() {
 module.exports = {
   subscribe,
   purgeQueues,
+  deleteQueues,
   reset
 };
