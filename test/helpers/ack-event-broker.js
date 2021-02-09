@@ -6,16 +6,16 @@ const oldSub = broker.wq.subscribe;
 
 function newSub(routingKeyOrKeys, queue, handler, cb) {
   const functions = [];
-  let first = true;
+  let concurrent = 0;
 
   function next() {
+    concurrent--;
     const fn = functions.shift();
     if (fn) fn();
   }
 
   function addFn(fn) {
-    if (first) {
-      first = false;
+    if (concurrent++ === 0) {
       return fn();
     }
     functions.push(fn);
@@ -26,12 +26,10 @@ function newSub(routingKeyOrKeys, queue, handler, cb) {
     const oldAck = notify.ack;
     const oldNack = notify.nack;
     notify.ack = () => {
-      broker.wq.emit("ack", message, meta, "ack");
       oldAck();
       next();
     };
     notify.nack = (...args) => {
-      broker.wq.emit("nack", message, meta, "nack");
       oldNack(...args);
       next();
     };
