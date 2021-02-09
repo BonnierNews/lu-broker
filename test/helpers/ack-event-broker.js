@@ -6,19 +6,16 @@ const oldSub = broker.wq.subscribe;
 
 function newSub(routingKeyOrKeys, queue, handler, cb) {
   const functions = [];
-  let concurrent = 0;
+  let locked = false;
 
-  function next() {
-    concurrent--;
-    const fn = functions.shift();
-    if (fn) fn();
-  }
-
-  function addFn(fn) {
-    if (concurrent++ === 0) {
-      return fn();
+  function run(fn) {
+    if (locked) {
+      functions.push(fn);
+      return;
+    } else if (fn) {
+      locked = true;
+      fn();
     }
-    functions.push(fn);
   }
 
   const oldHandler = handler;
@@ -27,13 +24,15 @@ function newSub(routingKeyOrKeys, queue, handler, cb) {
     const oldNack = notify.nack;
     notify.ack = () => {
       oldAck();
-      next();
+      locked = false;
+      run(functions.shift());
     };
     notify.nack = (...args) => {
       oldNack(...args);
-      next();
+      locked = false;
+      run(functions.shift());
     };
-    addFn(() => oldHandler(message, meta, notify));
+    run(() => oldHandler(message, meta, notify));
   };
   oldSub(routingKeyOrKeys, queue, handler, cb);
 }
