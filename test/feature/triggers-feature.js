@@ -568,8 +568,8 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on the other events a trigger key", async () => {
-      await crd.publishMessage("trigger.event.some-other-name", source);
       triggerMessages = crd.subscribe("trigger.#");
+      await crd.publishMessage("trigger.event.some-other-name", source);
       await waitForMessages;
     });
 
@@ -596,7 +596,7 @@ Feature("Triggers", () => {
     });
 
     And("there should be an internal message", () => {
-      triggerMessages.length.should.eql(1);
+      triggerMessages.length.should.eql(2);
       const {msg, key} = triggerMessages.pop();
       key.should.eql("trigger.event.some-name");
       msg.should.eql({
