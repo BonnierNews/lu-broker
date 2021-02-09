@@ -192,7 +192,7 @@ describe("recipes-repo", () => {
       otherRepo
         .workerQueues()
         .map(({key}) => key)
-        .should.eql(["wq.trigger.one", "wq.trigger.two"]);
+        .should.eql(["wq.trigger.sub-sequence.one", "wq.trigger.sub-sequence.two"]);
     });
     it("should get queuenames for sub-sequences", () => {
       otherRepo
