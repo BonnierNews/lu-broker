@@ -469,6 +469,7 @@ Feature("Spawn flows with triggers", () => {
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
+            executionDelay: 20,
             sequence: [route(".perform.one", brittleFn)]
           }
         ]

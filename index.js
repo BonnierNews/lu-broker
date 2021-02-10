@@ -41,7 +41,7 @@ function start({recipes, triggers, useParentCorrelationId}) {
   const triggerKeys = recipeMap.triggerKeys();
 
   for (const {key, queue} of recipeMap.workerQueues()) {
-    wq.subscribe(key, queue, handleMessageWrapper(buildWorkerHandler(queue)));
+    wq.subscribe(key, queue, handleMessageWrapper(buildWorkerHandler(queue, recipeMap)));
   }
 
   crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));

@@ -297,6 +297,73 @@ describe("recipes-repo validation", () => {
     });
   });
 
+  describe("executionDelay of sub-sequence", () => {
+    it("should allow executionDelay", () => {
+      (function () {
+        recipesRepo.init([
+          {
+            namespace: "sub-sequence",
+            name: "one",
+            executionDelay: 22,
+            sequence: [route(".perform.first", passThru)]
+          }
+        ]);
+      }.should.not.throw(Error));
+    });
+
+    it("should only allow numbers in executionDelay", () => {
+      (function () {
+        recipesRepo.init([
+          {
+            namespace: "sub-sequence",
+            name: "one",
+            executionDelay: "blaj",
+            sequence: [route(".perform.first", passThru)]
+          }
+        ]);
+      }.should.throw(Error));
+    });
+
+    it("should only allow numbers positive numbers", () => {
+      (function () {
+        recipesRepo.init([
+          {
+            namespace: "sub-sequence",
+            name: "one",
+            executionDelay: -1,
+            sequence: [route(".perform.first", passThru)]
+          }
+        ]);
+      }.should.throw(Error));
+    });
+
+    it("should only allow numbers up to one hour", () => {
+      (function () {
+        recipesRepo.init([
+          {
+            namespace: "sub-sequence",
+            name: "one",
+            executionDelay: 2 * 3600 * 1000,
+            sequence: [route(".perform.first", passThru)]
+          }
+        ]);
+      }.should.throw(Error));
+    });
+
+    it("should NOT allow executionDelay if not sub-sequence", () => {
+      (function () {
+        recipesRepo.init([
+          {
+            namespace: "sequence",
+            name: "one",
+            executionDelay: 22,
+            sequence: [route(".perform.first", passThru)]
+          }
+        ]);
+      }.should.throw(Error));
+    });
+  });
+
   describe("validate event names", () => {
     it("should not allow duplicates", () => {
       (function () {
