@@ -7,6 +7,7 @@ const {
   crd,
   reject,
   internal,
+  wq,
   internalQueueName,
   lambdasQueueName,
   triggersQueueName,
@@ -18,6 +19,7 @@ const recipeRepo = require("./lib/recipe-repo");
 const liveness = require("./liveness");
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
+const buildWorkerHandler = require("./lib/handle-worker-message");
 const buildRejectHandler = require("./lib/handle-rejected-message");
 const buildInternalHandler = require("./lib/handle-internal-message");
 const context = require("./lib/context");
@@ -37,6 +39,10 @@ function start({recipes, triggers, useParentCorrelationId}) {
   const handleInteralMessage = buildInternalHandler(recipeMap);
   const flowKeys = recipeMap.keys();
   const triggerKeys = recipeMap.triggerKeys();
+
+  for (const {key, queue} of recipeMap.workerQueues()) {
+    wq.subscribe(key, queue, handleMessageWrapper(buildWorkerHandler(queue, recipeMap)));
+  }
 
   crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));
   crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));

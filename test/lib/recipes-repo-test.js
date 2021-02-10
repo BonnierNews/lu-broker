@@ -170,6 +170,55 @@ describe("recipes-repo", () => {
     });
   });
 
+  describe("workerQueues", () => {
+    const otherRepo = recipesRepo.init([
+      {
+        namespace: "event",
+        name: "dad",
+        sequence: [route(".perform.one", passThru)]
+      },
+      {
+        namespace: "sub-sequence",
+        name: "one",
+        executionDelay: 22,
+        sequence: [route(".perform.two", passThru)]
+      },
+      {
+        namespace: "sub-sequence",
+        name: "two",
+        executionDelay: 0,
+        sequence: [route(".perform.three", passThru)]
+      },
+      {
+        namespace: "sub-sequence",
+        name: "default",
+        sequence: [route(".perform.four", passThru)]
+      }
+    ]);
+    it("should key keys for sub-sequences", () => {
+      otherRepo
+        .workerQueues()
+        .map(({key}) => key)
+        .should.eql(["wq.trigger.sub-sequence.one", "wq.trigger.sub-sequence.two", "wq.trigger.sub-sequence.default"]);
+    });
+    it("should get queuenames for sub-sequences", () => {
+      otherRepo
+        .workerQueues()
+        .map(({queue}) => queue)
+        .should.eql([
+          "lu-broker-workqueue-one-test",
+          "lu-broker-workqueue-two-test",
+          "lu-broker-workqueue-default-test"
+        ]);
+    });
+
+    it("should get executionDelay on trigger-key", () => {
+      otherRepo.executionDelay("trigger.sub-sequence.one").should.eql(22);
+      otherRepo.executionDelay("trigger.sub-sequence.two").should.eql(0);
+      should.not.exist(otherRepo.executionDelay("trigger.sub-sequence.default"));
+    });
+  });
+
   describe("getUnrecoverableHandler", () => {
     before(() => {
       repo = recipesRepo.init(events, triggers);
