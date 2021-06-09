@@ -8,6 +8,7 @@
     "test": "mocha --exit --reporter ${REPORTER:-spec} && eslint . --cache && depcheck --ignores=\"prettier\"",
     "format": "prettier **/*.js --write && eslint . --fix"
   },
+  "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "amqplib": "^0.5.3",
