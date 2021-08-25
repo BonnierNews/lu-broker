@@ -14,7 +14,6 @@ const {
   rejectQueueName,
   brokerBackend
 } = require("./lib/broker");
-const bugsnag = require("bugsnag");
 const recipeRepo = require("./lib/recipe-repo");
 const liveness = require("./liveness");
 const buildFlowHandler = require("./lib/handle-flow-message");
@@ -41,17 +40,17 @@ function start({recipes, triggers, useParentCorrelationId}) {
   const triggerKeys = recipeMap.triggerKeys();
 
   for (const {key, queue} of recipeMap.workerQueues()) {
-    wq.subscribe(key, queue, handleMessageWrapper(buildWorkerHandler(queue, recipeMap)));
+    wq.subscribe(key, queue, buildWorkerHandler(queue, recipeMap));
   }
 
-  crd.subscribe(flowKeys, lambdasQueueName, handleMessageWrapper(handleFlowMessage));
-  crd.subscribe(triggerKeys, triggersQueueName, handleMessageWrapper(handleTriggerMessage));
-  reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleMessageWrapper(handleRejectMessage));
+  crd.subscribe(flowKeys, lambdasQueueName, handleFlowMessage);
+  crd.subscribe(triggerKeys, triggersQueueName, handleTriggerMessage);
+  reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleRejectMessage);
 
   internal.subscribe(
     [...recipeMap.processedKeys(), ...recipeMap.processedUnrecoverableKeys()],
     internalQueueName,
-    handleMessageWrapper(handleInteralMessage)
+    handleInteralMessage
   );
 
   const routes = require("./lib/server/routes")(triggerKeys);
@@ -61,13 +60,6 @@ function start({recipes, triggers, useParentCorrelationId}) {
 function stop() {
   if (!server) return Promise.resolve(server);
   return new Promise((resolve) => server.close(resolve));
-}
-
-function handleMessageWrapper(fn) {
-  return (...args) => {
-    if (config.bugsnagApiKey) return bugsnag.autoNotify(() => fn(...args));
-    return fn(...args);
-  };
 }
 
 function route(key, fn) {
