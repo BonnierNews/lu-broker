@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
   "scripts": {
@@ -10,9 +10,9 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "amqplib": "^0.5.3",
+    "amqplib": "^0.7",
     "camelcase": "^6.0.0",
-    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#v3.0.0",
+    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#^3.2.0",
     "exp-config": "^3.0.0",
     "ioredis": "^4.17.1",
     "joi": "^17.4.0",
