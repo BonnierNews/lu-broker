@@ -12,7 +12,7 @@
   "dependencies": {
     "amqplib": "^0.7",
     "camelcase": "^6.0.0",
-    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#bump-deps",
+    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#^3.2.0",
     "exp-config": "^3.0.0",
     "ioredis": "^4.17.1",
     "joi": "^17.4.0",
