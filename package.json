@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "test": "mocha --exit --reporter ${REPORTER:-spec} && eslint . --cache && depcheck --ignores=\"prettier\"",
     "format": "prettier **/*.js --write && eslint . --fix"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "amqplib": "^0.7",
     "camelcase": "^6.0.0",
