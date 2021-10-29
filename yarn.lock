@@ -1755,7 +1755,7 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-"lu-logger@github:BonnierNews/lu-logger":
+"lu-logger@github:BonnierNews/lu-logger#^2.3.1":
   version "2.3.1"
   resolved "https://codeload.github.com/BonnierNews/lu-logger/tar.gz/653ca048ed2cf3a24a44d2b4a521ec8e29390ce9"
   dependencies:
