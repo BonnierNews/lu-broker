@@ -111,3 +111,6 @@ function myTriggerLambda(message, context) {
     };
   }
 ```
+## Version notes:
+v2.x supports node 8,10 (but works at least to node 14)
+v3.x supports node 12,14,16
