@@ -11,6 +11,9 @@
     "test": "mocha --exit --reporter ${REPORTER:-spec} && eslint . --cache && depcheck --ignores=\"prettier\"",
     "format": "prettier **/*.js --write && eslint . --fix"
   },
+  "repository": "github:BonnierNews/lu-broker",
+  "homepage": "https://github.com/BonnierNews/lu-broker",
+  "bugs": "https://github.com/BonnierNews/lu-broker/issues",
   "license": "MIT",
   "dependencies": {
     "amqplib": "^0.7",
