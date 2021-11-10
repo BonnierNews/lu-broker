@@ -1,4 +1,5 @@
 # lu-broker
+![Node.js CI](https://github.com/BonnierNews/lu-broker/actions/workflows/nodejs.yml/badge.svg)
 
 Welcome to the lu-broker repo. This is a module used when building rabbitmq based workers.
 
