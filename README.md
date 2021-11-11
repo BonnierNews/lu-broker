@@ -1,4 +1,5 @@
 # lu-broker
+![Node.js CI](https://github.com/BonnierNews/lu-broker/actions/workflows/nodejs.yml/badge.svg)
 
 Welcome to the lu-broker repo. This is a module used when building rabbitmq based workers.
 
@@ -111,3 +112,6 @@ function myTriggerLambda(message, context) {
     };
   }
 ```
+## Version notes:
+v2.x supports node 8,10 (but works at least to node 14)
+v3.x supports node 12,14,16
