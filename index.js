@@ -26,7 +26,7 @@ const publishCli = require("./publish-cli");
 const shutdownHandler = require("./lib/graceful-shutdown");
 let server;
 
-function start({recipes, triggers, useParentCorrelationId}) {
+function start({recipes, triggers, useParentCorrelationId = false}) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
   if (!config.disableGracefulShutdown) {
     shutdownHandler.init();
