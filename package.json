@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "engines": {
     "node": ">=12 <=16"
   },
@@ -18,7 +18,7 @@
   "dependencies": {
     "amqplib": "^0.7",
     "camelcase": "^6.2.0",
-    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#semver:^3.2.0",
+    "exp-amqp-connection": "BonnierNews/exp-amqp-connection#semver:3.2.3-fork",
     "exp-config": "^3.0.0",
     "ioredis": "^4.28.0",
     "joi": "^17.4.2",
