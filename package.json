@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "engines": {
     "node": ">=12 <=16"
   },
@@ -16,7 +16,7 @@
   "bugs": "https://github.com/BonnierNews/lu-broker/issues",
   "license": "MIT",
   "dependencies": {
-    "amqplib": "^0.7",
+    "amqplib": "^0.8.0",
     "camelcase": "^6.2.0",
     "exp-amqp-connection": "BonnierNews/exp-amqp-connection#semver:^3.2.4",
     "exp-config": "^3.0.0",
