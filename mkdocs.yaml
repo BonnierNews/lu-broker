@@ -1,0 +1,7 @@
+site_name: 'LU Broker'
+
+nav:
+  - Docs: README.md
+
+plugins:
+  - techdocs-core
