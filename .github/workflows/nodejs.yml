@@ -27,7 +27,13 @@ jobs:
         NODE_ENV: "test"
 
     - name: Run Tests
-      run: yarn test
+      run: yarn coverage
+      env:
+        NODE_ENV: "test"
+        CI: true
+
+    - name: Check coverage
+      run: yarn check-coverage
       env:
         NODE_ENV: "test"
         CI: true
