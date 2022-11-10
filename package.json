@@ -1,8 +1,8 @@
 {
   "name": "lu-broker",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "engines": {
-    "node": ">=12 <=16"
+    "node": ">=18"
   },
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
