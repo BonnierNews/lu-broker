@@ -24,7 +24,7 @@
     "exp-config": "^4.2.0",
     "ioredis": "^5.2.4",
     "joi": "^17.7.0",
-    "lu-logger": "BonnierNews/lu-logger#semver:~4.1.0",
+    "lu-logger": "BonnierNews/lu-logger#semver:~4.2.1",
     "prom-client": "^12.0.0",
     "request": "^2.88.2",
     "uuid": "^9.0.0"
