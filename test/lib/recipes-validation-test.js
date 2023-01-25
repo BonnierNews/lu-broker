@@ -24,7 +24,7 @@ describe("recipes-repo validation", () => {
     it("should not allow unknown keys", () => {
       (function () {
         recipesRepo.init([events[0], {...events[1], foobar: "foobar"}]);
-      }.should.throw(Error, 'value: "foobar" detail: "[1].foobar" is not allowed'));
+      }).should.throw(Error, 'value: "foobar" detail: "[1].foobar" is not allowed');
     });
   });
 
@@ -35,10 +35,10 @@ describe("recipes-repo validation", () => {
           events[0],
           {...events[1], sequence: [...events[1].sequence, route("event.one.perform.three")]}
         ]);
-      }.should.throw(
+      }).should.throw(
         Error,
         /Error in 'event.two': borrowed key 'event.one.perform.three' does not exist in 'event.one'/
-      ));
+      );
     });
 
     it("should not allow functions for borrowing", () => {
@@ -47,7 +47,7 @@ describe("recipes-repo validation", () => {
           events[0],
           {...events[1], sequence: [events[1].sequence[0], route("event.one.perform.first", passThru)]}
         ]);
-      }.should.throw(Error, /Handler function not allowed for borrowed key: 'event.one.perform.first' in 'event.two'/));
+      }).should.throw(Error, /Handler function not allowed for borrowed key: 'event.one.perform.first' in 'event.two'/);
     });
 
     it("should require a fn for internal keys", () => {
@@ -59,7 +59,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.one")]
           }
         ]);
-      }.should.throw(Error, /No function given for key '.perform.one' in 'event.bax'/));
+      }).should.throw(Error, /No function given for key '.perform.one' in 'event.bax'/);
     });
 
     it("should only allow functions for internal keys", () => {
@@ -71,7 +71,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.one", ".event.bar.hej")]
           }
         ]);
-      }.should.throw(Error, /Only functions are supported as handlers/));
+      }).should.throw(Error, /Only functions are supported as handlers/);
     });
 
     it("should not allow duplicates in sequence", () => {
@@ -83,7 +83,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.one", passThru), route(".perform.one", passThru)]
           }
         ]);
-      }.should.throw(Error, 'value: {} detail: "[0].sequence[1]" contains a duplicate value'));
+      }).should.throw(Error, 'value: {} detail: "[0].sequence[1]" contains a duplicate value');
     });
 
     it("should not allow more than 4 parts if no agumentation", () => {
@@ -95,7 +95,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.first.not-allowed", passThru)]
           }
         ]);
-      }.should.throw(Error, /.perform.first.not-allowed/));
+      }).should.throw(Error, /.perform.first.not-allowed/);
     });
 
     it("should not allow less than 4 parts if no agumentation", () => {
@@ -107,7 +107,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform", passThru)]
           }
         ]);
-      }.should.throw(Error, /.perform/));
+      }).should.throw(Error, /.perform/);
     });
 
     it("should not allow more than 5 parts if agumentation", () => {
@@ -119,7 +119,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".optional.perform.first.not-allowed", passThru)]
           }
         ]);
-      }.should.throw(Error, /.optional.perform.first.not-allowed/));
+      }).should.throw(Error, /.optional.perform.first.not-allowed/);
     });
 
     it("should not allow less than 5 parts if agumentation", () => {
@@ -131,7 +131,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".optional.perform", passThru)]
           }
         ]);
-      }.should.throw(Error, /.optional.perform/));
+      }).should.throw(Error, /.optional.perform/);
     });
   });
 
@@ -141,7 +141,7 @@ describe("recipes-repo validation", () => {
         recipesRepo.init([events[0]], {
           "trigger.baz": "hej.hopp"
         });
-      }.should.throw(Error, /Only functions are supported as triggers/));
+      }).should.throw(Error, /Only functions are supported as triggers/);
     });
 
     it("should only allow more than 2 parts in triggers", () => {
@@ -149,7 +149,7 @@ describe("recipes-repo validation", () => {
         recipesRepo.init([events[0]], {
           "trigger.baz.bar": passThru
         });
-      }.should.throw(Error, /Invalid format for trigger.baz.bar/));
+      }).should.throw(Error, /Invalid format for trigger.baz.bar/);
     });
 
     it("should only allow to start with trigger", () => {
@@ -157,7 +157,7 @@ describe("recipes-repo validation", () => {
         recipesRepo.init([events[0]], {
           "triggerzzz.baz": passThru
         });
-      }.should.throw(Error, /Invalid format for triggerzzz.baz/));
+      }).should.throw(Error, /Invalid format for triggerzzz.baz/);
     });
   });
 
@@ -168,13 +168,13 @@ describe("recipes-repo validation", () => {
           events[0],
           {...events[1], sequence: [route(".fimp.first", passThru), events[1].sequence[1]]}
         ]);
-      }.should.throw(Error, /Invalid verb in .fimp.first/));
+      }).should.throw(Error, /Invalid verb in .fimp.first/);
       (function () {
         recipesRepo.init([
           events[0],
           {...events[1], sequence: [route("event.one.fimp.first", passThru), events[1].sequence[1]]}
         ]);
-      }.should.throw(Error, /Invalid verb in event.one.fimp.first/));
+      }).should.throw(Error, /Invalid verb in event.one.fimp.first/);
     });
 
     it("should allow known verbs", () => {
@@ -192,7 +192,7 @@ describe("recipes-repo validation", () => {
 
       (function () {
         recipesRepo.init(innerEvents, innerLambdas);
-      }.should.not.throw(Error));
+      }).should.not.throw(Error);
     });
 
     it("should allow known verbs when borrowing (plus agumentation)", () => {
@@ -222,7 +222,7 @@ describe("recipes-repo validation", () => {
 
       (function () {
         recipesRepo.init(innerEvents);
-      }.should.not.throw(Error));
+      }).should.not.throw(Error);
     });
 
     it("should allow known verbs when agumentation", () => {
@@ -239,7 +239,7 @@ describe("recipes-repo validation", () => {
 
       (function () {
         recipesRepo.init(innerEvents);
-      }.should.not.throw(Error));
+      }).should.not.throw(Error);
     });
 
     it("should not allow unknown agumentation ", () => {
@@ -256,7 +256,7 @@ describe("recipes-repo validation", () => {
 
       (function () {
         recipesRepo.init(innerEvents);
-      }.should.throw(Error, /Invalid step .baz.get-or-create.anything/));
+      }).should.throw(Error, /Invalid step .baz.get-or-create.anything/);
     });
   });
 
@@ -264,10 +264,10 @@ describe("recipes-repo validation", () => {
     it("should not allow unknown namespaces", () => {
       (function () {
         recipesRepo.init([events[0], {...events[1], namespace: "foobar"}]);
-      }.should.throw(
+      }).should.throw(
         Error,
         'value: "foobar" detail: "[1].namespace" must be one of [event, action, sequence, sub-sequence]'
-      ));
+      );
     });
     it("should allow known namespaces", () => {
       (function () {
@@ -293,7 +293,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.fourth", passThru)]
           }
         ]);
-      }.should.not.throw(Error));
+      }).should.not.throw(Error);
     });
   });
 
@@ -308,7 +308,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.first", passThru)]
           }
         ]);
-      }.should.not.throw(Error));
+      }).should.not.throw(Error);
     });
 
     it("should only allow numbers in executionDelay", () => {
@@ -321,7 +321,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.first", passThru)]
           }
         ]);
-      }.should.throw(Error));
+      }).should.throw(Error);
     });
 
     it("should only allow numbers positive numbers", () => {
@@ -334,7 +334,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.first", passThru)]
           }
         ]);
-      }.should.throw(Error));
+      }).should.throw(Error);
     });
 
     it("should only allow numbers up to one hour", () => {
@@ -347,7 +347,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.first", passThru)]
           }
         ]);
-      }.should.throw(Error));
+      }).should.throw(Error);
     });
 
     it("should NOT allow executionDelay if not sub-sequence", () => {
@@ -360,7 +360,7 @@ describe("recipes-repo validation", () => {
             sequence: [route(".perform.first", passThru)]
           }
         ]);
-      }.should.throw(Error));
+      }).should.throw(Error);
     });
   });
 
@@ -368,21 +368,21 @@ describe("recipes-repo validation", () => {
     it("should not allow duplicates", () => {
       (function () {
         recipesRepo.init([...events, events[0]]);
-      }.should.throw(Error, /duplicate value/));
+      }).should.throw(Error, /duplicate value/);
     });
     it("should not allow invalid chars", () => {
       (function () {
         recipesRepo.init([events[0], {...events[1], name: ".hej"}]);
-      }.should.throw(
+      }).should.throw(
         Error,
         '.hej" detail: "[1].name" with value ".hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
-      ));
+      );
       (function () {
         recipesRepo.init([events[0], {...events[1], name: "#hej"}]);
-      }.should.throw(
+      }).should.throw(
         Error,
         'value: "#hej" detail: "[1].name" with value "#hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
-      ));
+      );
     });
   });
 
@@ -390,7 +390,7 @@ describe("recipes-repo validation", () => {
     it("should only allow *", () => {
       (function () {
         recipesRepo.init([{...events[1], unrecoverable: [{baz: () => {}}]}]);
-      }.should.throw(Error, /Invalid key in unrecoverable: baz in event.two, allowed are '*'/));
+      }).should.throw(Error, /Invalid key in unrecoverable: baz in event.two, allowed are '*'/);
     });
   });
 });
