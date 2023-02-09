@@ -31,7 +31,7 @@ async function caseUnlessHandler(message, context) {
 async function missingRequiredPropCaseHandler(message, context) {
   const {caseIf} = context;
   const badCaseBody = {...caseBody};
-  delete badCaseBody.contact;
+  delete badCaseBody.origin;
   await caseIf(true, badCaseBody);
 }
 
