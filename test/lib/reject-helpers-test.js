@@ -16,15 +16,15 @@ const {
 
 const caseBody = {
   contact: {id: "some-contact-id"},
-  namespace: "some-namespace",
+  namespace: "BN",
   businessType: "b2c",
   origin: "your-system",
   subject: "Some subject",
   priority: "low",
   description: "Something has happend that the system can't deal with",
-  category: "Back-office",
-  sourceQueue: "BO-queue",
-  owner: "Back office agents",
+  category: "Övriga ärenden",
+  sourceQueue: "BNBO",
+  owner: "BNBO",
   externalReference: "some-id"
 };
 
@@ -37,7 +37,7 @@ Feature("Testing the reject-helpers", () => {
       delete payload.namespace;
       const request = {
         request: {
-          path: `${config.salesforceApiUrl}/some-namespace/case`,
+          path: `${config.salesforceApiUrl}/BN/case`,
           method: "post",
           body: payload
         },
@@ -68,7 +68,7 @@ Feature("Testing the reject-helpers", () => {
       delete payload.namespace;
       const request = {
         request: {
-          path: `${config.salesforceApiUrl}/some-namespace/case`,
+          path: `${config.salesforceApiUrl}/BN/case`,
           method: "post",
           body: payload
         },
