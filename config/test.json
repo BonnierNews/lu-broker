@@ -29,5 +29,6 @@
   },
   "proxyUrl": "http://api.example.com",
   "sigtermEvent": "test-SIGTERM",
-  "shutDownProbeInterval": 10
+  "shutDownProbeInterval": 10,
+  "salesforceApiUrl": "/the-sf-api-url"
 }
