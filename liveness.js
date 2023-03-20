@@ -8,7 +8,7 @@ async function rabbitStatus() {
     const response = await axios.get(`${config.rabbit.apiUrl}/api/connections`);
 
     if (response.statusCode !== 200) throw new Error(response.statusCode);
-    const myConn = response.body.find((conn) => conn.client_properties.connection_name === config.HOSTNAME);
+    const myConn = response.data.find((conn) => conn.client_properties.connection_name === config.HOSTNAME);
     if (!myConn) throw new Error(`Could not find rabbit connection for: ${config.HOSTNAME}`);
     return 0;
   } catch (err) {
