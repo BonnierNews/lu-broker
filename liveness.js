@@ -5,9 +5,16 @@ const axios = require("axios");
 
 async function rabbitStatus() {
   try {
-    const response = await axios.get(`${config.rabbit.apiUrl}/api/connections`);
-
-    if (response.statusCode !== 200) throw new Error(response.statusCode);
+    // console.log(`${config.rabbit.apiUrl}/api/connections`);
+    const [, baseUrl] = config.rabbit.apiUrl.split("@");
+    // console.log(`http://${baseUrl}/api/connections`);
+    const response = await axios.get(`http://${baseUrl}/api/connections`, {
+      auth: {
+        username: "guest",
+        password: "guest"
+      }
+    });
+    if (response.status !== 200) throw new Error(response.status);
     const myConn = response.data.find((conn) => conn.client_properties.connection_name === config.HOSTNAME);
     if (!myConn) throw new Error(`Could not find rabbit connection for: ${config.HOSTNAME}`);
     return 0;
@@ -21,4 +28,7 @@ async function cli() {
   process.exit(await rabbitStatus());
 }
 
-module.exports = cli;
+module.exports = {
+  liveness: cli,
+  rabbitStatus
+};

@@ -15,7 +15,7 @@ const {
   brokerBackend
 } = require("./lib/broker");
 const recipeRepo = require("./lib/recipe-repo");
-const liveness = require("./liveness");
+const {liveness} = require("./liveness");
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildWorkerHandler = require("./lib/handle-worker-message");
