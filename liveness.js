@@ -1,20 +1,24 @@
 "use strict";
 
 const config = require("exp-config");
-const request = require("request");
+const axios = require("axios");
 
-function rabbitStatus() {
-  return new Promise((resolve, reject) => {
-    request.get(`${config.rabbit.apiUrl}/api/connections`, (err, response, body) => {
-      if (err) return reject(err);
-      if (response.statusCode !== 200) return reject(new Error(response.statusCode));
-      const myConn = JSON.parse(body).find((conn) => conn.client_properties.connection_name === config.HOSTNAME);
-      if (!myConn) return reject(new Error(`Could not find rabbit connection for: ${config.HOSTNAME}`));
-      resolve();
+async function rabbitStatus() {
+  try {
+    const [, baseUrl] = config.rabbit.apiUrl.split("@");
+    const response = await axios.get(`http://${baseUrl}/api/connections`, {
+      auth: {
+        username: "guest",
+        password: "guest"
+      }
     });
-  })
-    .then(() => 0)
-    .catch(() => 1);
+    if (response.status !== 200) throw new Error(response.status);
+    const myConn = response.data.find((conn) => conn.client_properties.connection_name === config.HOSTNAME);
+    if (!myConn) throw new Error(`Could not find rabbit connection for: ${config.HOSTNAME}`);
+    return 0;
+  } catch (err) {
+    return 1;
+  }
 }
 
 async function cli() {
@@ -22,4 +26,7 @@ async function cli() {
   process.exit(await rabbitStatus());
 }
 
-module.exports = cli;
+module.exports = {
+  liveness: cli,
+  rabbitStatus
+};

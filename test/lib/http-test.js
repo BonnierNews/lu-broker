@@ -180,5 +180,6 @@ describe("http", () => {
       });
     });
   });
+
   afterEach(fakeApi.reset);
 });
