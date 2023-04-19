@@ -1484,9 +1484,10 @@ globals@^13.19.0:
   dependencies:
     type-fest "^0.20.2"
 
-"glossy@git+https://github.com/pavkriz/glossy#v0.1.7.1":
+glossy@^0.1.7:
   version "0.1.7"
-  resolved "git+https://github.com/pavkriz/glossy#efb47740b14defcaae289f98f43ae276cccd1a2f"
+  resolved "https://registry.yarnpkg.com/glossy/-/glossy-0.1.7.tgz#769b5984a96f6066ab9ea758224825ee6c210f0b"
+  integrity sha512-mTCC51QFadK75MvAhrL5nPVIP291NjML1guo10Sa7Yj04tJU4V++Vgm780NIddg9etQD9D8FM67hFGqM8EE2HQ==
 
 graceful-fs@^4.1.15:
   version "4.2.10"
@@ -1952,9 +1953,9 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-"lu-logger@BonnierNews/lu-logger#semver:~4.2.1":
-  version "4.2.1"
-  resolved "https://codeload.github.com/BonnierNews/lu-logger/tar.gz/84f2a88e7ff770b2cc5cbcc822f3f04dd926bd2b"
+"lu-logger@BonnierNews/lu-logger#semver:~4.4.0":
+  version "4.4.0"
+  resolved "https://codeload.github.com/BonnierNews/lu-logger/tar.gz/1134d3bdfe0a46c8701ecba146f9cbb40b1730e8"
   dependencies:
     exp-config "^4.2.0"
     lodash.isequal "^4.5.0"
@@ -1963,7 +1964,7 @@ lru-cache@^6.0.0:
     opossum "^7.0.1"
     prom-client "^14.1.0"
     winston "^3.8.2"
-    winston-syslog "github:BonnierNews/winston-syslog#~3.0.0-fork"
+    winston-syslog "^2.7.0"
     winston-transport "^4.5.0"
 
 magic-string@^0.25.7:
@@ -2980,11 +2981,12 @@ which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
-"winston-syslog@github:BonnierNews/winston-syslog#~3.0.0-fork":
-  version "3.0.0-fork"
-  resolved "https://codeload.github.com/BonnierNews/winston-syslog/tar.gz/4c51e88e3bde156ded6e7c0eb4ccfe189ccfbdfa"
+winston-syslog@^2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/winston-syslog/-/winston-syslog-2.7.0.tgz#b209ad4bab2aa8bec682c37fe4af791b82922c67"
+  integrity sha512-w+V0lHO2W6XqcYlvVi4DrblwJShvQbAaruRvUlMPzH1Z+dYvUvo4ra2hhoF6UNTFmC9LBltcTG05ypYL6S/B8A==
   dependencies:
-    glossy "git+https://github.com/pavkriz/glossy#v0.1.7.1"
+    glossy "^0.1.7"
   optionalDependencies:
     unix-dgram "2.0.6"
 
