@@ -5,11 +5,12 @@ const axios = require("axios");
 
 async function rabbitStatus() {
   try {
-    const [, baseUrl] = config.rabbit.apiUrl.split("@");
+    const [authUrl, baseUrl] = config.rabbit.apiUrl.split("@");
+    const [username, password] = authUrl.split("/")[2].split(":");
     const response = await axios.get(`http://${baseUrl}/api/connections`, {
       auth: {
-        username: "guest",
-        password: "guest"
+        username,
+        password
       }
     });
     if (response.status !== 200) throw new Error(response.status);
