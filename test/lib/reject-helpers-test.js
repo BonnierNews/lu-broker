@@ -1,7 +1,7 @@
 "use strict";
 
 const config = require("exp-config");
-const fakeApi = require("../helpers/fake-api");
+const fakeApi = require("../helpers/fake-api")();
 const {assertCaseCreated, assertRejected, assertRetry, assertUnrecoverable} = require("../../lib/test-helpers");
 const {
   caseIf,
@@ -29,6 +29,9 @@ const caseBody = {
 };
 
 Feature("Testing the reject-helpers", () => {
+  beforeEachScenario(() => {
+    fakeApi.reset();
+  });
   Scenario("Create case if", () => {
     let response;
 

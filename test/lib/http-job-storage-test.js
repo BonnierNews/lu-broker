@@ -1,7 +1,7 @@
 "use strict";
 const storage = require("../../lib/http-job-storage");
 const buildContext = require("../../lib/context");
-const fakeApi = require("../helpers/fake-api");
+const fakeApi = require("../helpers/fake-api")();
 const manifest = require("../data/http-job-storage-manifest");
 const {assertRetry} = require("../../lib/test-helpers");
 
