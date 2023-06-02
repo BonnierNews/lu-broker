@@ -30,5 +30,12 @@
   "proxyUrl": "http://api.example.com",
   "sigtermEvent": "test-SIGTERM",
   "shutDownProbeInterval": 10,
-  "salesforceApiUrl": "/the-sf-api-url"
+  "salesforceApiUrl": "/the-sf-api-url",
+  "gcpProxy": {
+    "url": "https://greenfield-test.bn.nr",
+    "audience": "test-audience.apps.googleusercontent.com"
+  },
+  "livesInGcp": [
+    "gcp"
+  ]
 }

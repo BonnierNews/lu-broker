@@ -1,6 +1,6 @@
 "use strict";
 
-const fakeApi = require("../helpers/fake-api");
+const fakeApi = require("../helpers/fake-api")();
 const httpClient = require("../../lib/http-client");
 
 describe("http-client, asserted", () => {

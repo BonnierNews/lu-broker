@@ -2,7 +2,7 @@
 
 const {start, route, stop} = require("../..");
 const {crd, reject} = require("../helpers/queue-helper");
-const fakeApi = require("../helpers/fake-api");
+const fakeApi = require("../helpers/fake-api")();
 const config = require("exp-config");
 
 const caseBody = {
