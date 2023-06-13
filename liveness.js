@@ -2,6 +2,8 @@
 
 const config = require("exp-config");
 const axios = require("axios");
+const {logger} = require("lu-logger");
+const callingAppName = require(`${process.cwd()}/package.json`).name;
 
 async function rabbitStatus() {
   try {
@@ -18,6 +20,7 @@ async function rabbitStatus() {
     if (!myConn) throw new Error(`Could not find rabbit connection for: ${config.HOSTNAME}`);
     return 0;
   } catch (err) {
+    logger.error("Liveness failed - Rabbit Error", err, {meta: {requesterName: callingAppName}});
     return 1;
   }
 }
