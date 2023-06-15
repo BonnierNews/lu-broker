@@ -7,14 +7,9 @@ const callingAppName = require(`${process.cwd()}/package.json`).name;
 
 async function rabbitStatus() {
   try {
-    const protocol = config.rabbit.apiUrl.split(":")[0];
-    const [authUrl, baseUrl] = config.rabbit.apiUrl.split("@");
-    const [username, password] = authUrl.split("/")[2].split(":");
-    const response = await axios.get(`${protocol}://${baseUrl}/api/connections`, {
-      auth: {
-        username,
-        password
-      }
+    const response = await axios({
+      url: `${config.rabbit.apiUrl}/api/connections`,
+      method: "get"
     });
     if (response.status !== 200) throw new Error(response.status);
     const myConn = response.data.find((conn) => conn.client_properties.connection_name === config.HOSTNAME);
