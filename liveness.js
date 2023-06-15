@@ -7,9 +7,10 @@ const callingAppName = require(`${process.cwd()}/package.json`).name;
 
 async function rabbitStatus() {
   try {
+    const protocol = config.rabbit.apiUrl.split(":")[0];
     const [authUrl, baseUrl] = config.rabbit.apiUrl.split("@");
     const [username, password] = authUrl.split("/")[2].split(":");
-    const response = await axios.get(`http://${baseUrl}/api/connections`, {
+    const response = await axios.get(`${protocol}://${baseUrl}/api/connections`, {
       auth: {
         username,
         password
