@@ -23,7 +23,7 @@
     "camelcase": "^6.2.0",
     "exp-amqp-connection": "BonnierNews/exp-amqp-connection#semver:^5.0.0",
     "exp-config": "^4.2.0",
-    "google-auth-library": "^8.7.0",
+    "google-auth-library": "8.7.0",
     "ioredis": "^5.2.4",
     "joi": "^17.7.0",
     "lu-logger": "BonnierNews/lu-logger#fix/truncate-then-splat",
