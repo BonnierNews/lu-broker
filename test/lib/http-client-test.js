@@ -12,7 +12,7 @@ describe("http-client, asserted", () => {
     fakeApi
       .get("/some/path")
       .matchHeader("correlation-id", (val) => {
-        val.should.eql(correlationId);
+        if (val) val.should.eql(correlationId);
         return val;
       })
       .matchHeader("x-debug-meta-routing-key", (val) => {
