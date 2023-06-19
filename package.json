@@ -19,7 +19,6 @@
   "license": "MIT",
   "dependencies": {
     "amqplib": "^0.9.1",
-    "axios": "^1.3.4",
     "camelcase": "^6.2.0",
     "exp-amqp-connection": "BonnierNews/exp-amqp-connection#semver:^5.0.0",
     "exp-config": "^4.2.0",
@@ -28,6 +27,7 @@
     "joi": "^17.7.0",
     "lu-logger": "BonnierNews/lu-logger#semver:~6.0.1",
     "prom-client": "^12.0.0",
+    "request": "^2.88.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
