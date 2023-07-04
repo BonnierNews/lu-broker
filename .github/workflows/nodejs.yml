@@ -21,19 +21,19 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      run: npm ci
       env:
         CI: true
         NODE_ENV: "test"
 
     - name: Run Tests
-      run: yarn coverage
+      run: npm run coverage
       env:
         NODE_ENV: "test"
         CI: true
 
     - name: Check coverage
-      run: yarn check-coverage
+      run: npm run check-coverage
       env:
         NODE_ENV: "test"
         CI: true

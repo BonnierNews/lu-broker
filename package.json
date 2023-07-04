@@ -2,7 +2,8 @@
   "name": "lu-broker",
   "version": "7.0.2",
   "engines": {
-    "node": ">=16 <=18"
+    "node": ">=16 <=18",
+    "yarn": "please use npm"
   },
   "description": "A broker and mediator for lu-projects",
   "main": "index.js",
@@ -10,7 +11,7 @@
     "lint": "eslint .",
     "test": "mocha --exit --reporter ${REPORTER:-spec} && eslint . --cache && depcheck --ignores=\"prettier\"",
     "format": "prettier **/*.js --write && eslint . --fix",
-    "coverage": "nyc yarn test",
+    "coverage": "nyc npm test",
     "check-coverage": "nyc check-coverage"
   },
   "repository": "github:BonnierNews/lu-broker",
@@ -26,7 +27,7 @@
     "google-auth-library": "^8.7.0",
     "ioredis": "^5.2.4",
     "joi": "^17.7.0",
-    "lu-logger": "BonnierNews/lu-logger#semver:^6.0.3",
+    "lu-logger": "BonnierNews/lu-logger#semver:^6.1.0",
     "prom-client": "^12.0.0",
     "uuid": "^9.0.0"
   },
