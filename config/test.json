@@ -37,5 +37,14 @@
   },
   "livesInGcp": [
     "gcp"
-  ]
+  ],
+  "s3": {
+    "bucket": "lu-etlet-lab",
+    "accessKeyId": "dummy-value",
+    "secretAccessKey": "dummy-value"
+  },
+  "ses": {
+    "accessKeyId": "dummy-value",
+    "secretAccessKey": "dummy-value"
+  }
 }
