@@ -2,7 +2,7 @@
 
 const config = require("exp-config");
 const nock = require("nock");
-const {rabbitStatus} = require("../../liveness");
+const { rabbitStatus } = require("../../liveness");
 
 Feature("Liveness", () => {
   beforeEachScenario(() => {
@@ -14,15 +14,15 @@ Feature("Liveness", () => {
     Given("we can get a rabbit hostname", () => {
       nock(config.rabbit.apiUrl)
         .get("/api/connections")
-        .basicAuth({user: "guest", pass: "guest"})
+        .basicAuth({ user: "guest", pass: "guest" })
         .reply(200, [
           {
             // eslint-disable-next-line camelcase
             client_properties: {
               // eslint-disable-next-line camelcase
-              connection_name: config.HOSTNAME
-            }
-          }
+              connection_name: config.HOSTNAME,
+            },
+          },
         ]);
     });
     let result;
@@ -43,9 +43,9 @@ Feature("Liveness", () => {
             // eslint-disable-next-line camelcase
             client_properties: {
               // eslint-disable-next-line camelcase
-              connection_name: "NOT_MY_HOSTNAME"
-            }
-          }
+              connection_name: "NOT_MY_HOSTNAME",
+            },
+          },
         ]);
     });
     let result;
@@ -59,7 +59,7 @@ Feature("Liveness", () => {
 
   Scenario("It returns a 1, server error", () => {
     Given("we can get a rabbit hostname", () => {
-      nock(config.rabbit.apiUrl).get("/api/connections").reply(503, [{}]);
+      nock(config.rabbit.apiUrl).get("/api/connections").reply(503, [ {} ]);
     });
     let result;
     When("we ask if rabbit is alive", async () => {

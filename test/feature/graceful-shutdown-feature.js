@@ -1,7 +1,7 @@
 "use strict";
 
-const {crd} = require("../helpers/queue-helper");
-const {start, route, stop} = require("../..");
+const { crd } = require("../helpers/queue-helper");
+const { start, route, stop } = require("../..");
 
 const snooze = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -9,12 +9,12 @@ async function sigHandler() {
   process.emit("test-SIGTERM");
   await snooze(100);
   setTimeout(() => {
-    return {type: "i-was-here", id: "my-guid"};
+    return { type: "i-was-here", id: "my-guid" };
   }, 5000);
 }
 
 function handler() {
-  return {type: "i-was-here", id: "my-guid"};
+  return { type: "i-was-here", id: "my-guid" };
 }
 
 Feature("Graceful shutdown", () => {
@@ -29,10 +29,10 @@ Feature("Graceful shutdown", () => {
             sequence: [
               route(".perform.one", handler),
               route(".perform.two", sigHandler),
-              route(".perform.three", handler)
-            ]
-          }
-        ]
+              route(".perform.three", handler),
+            ],
+          },
+        ],
       });
     });
 
@@ -40,8 +40,8 @@ Feature("Graceful shutdown", () => {
       await crd.publishMessage("trigger.event.some-name", {
         type: "order",
         id: "some-id",
-        meta: {correlationId: "some-correlation-id"},
-        attributes: {baz: true}
+        meta: { correlationId: "some-correlation-id" },
+        attributes: { baz: true },
       });
     });
 

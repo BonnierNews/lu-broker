@@ -3,20 +3,20 @@ const storage = require("../../lib/http-job-storage");
 const buildContext = require("../../lib/context");
 const fakeApi = require("../helpers/fake-api")();
 const manifest = require("../data/http-job-storage-manifest");
-const {assertRetry} = require("../../lib/test-helpers");
+const { assertRetry } = require("../../lib/test-helpers");
 
 describe("http storage", () => {
-  const context = buildContext({meta: {correlationId: "corrId"}}, {fields: {routingKey: "routingKey"}, properties: {}});
+  const context = buildContext({ meta: { correlationId: "corrId" } }, { fields: { routingKey: "routingKey" }, properties: {} });
   it("should store a parent", async () => {
     const mount = fakeApi.mount(manifest.entity.storeParent);
     const parent = await storage.storeParent({
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
 
     mount.hasExpectedBody();
@@ -25,10 +25,10 @@ describe("http storage", () => {
       id: "routingKey:corrId",
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
-      correlationId: "corrId"
+      correlationId: "corrId",
     });
   });
 
@@ -37,11 +37,11 @@ describe("http storage", () => {
     const parent = await storage.storeParent({
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
 
     mount.hasExpectedBody();
@@ -50,10 +50,10 @@ describe("http storage", () => {
       id: "routingKey:corrId",
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
-      correlationId: "corrId"
+      correlationId: "corrId",
     });
   });
 
@@ -63,18 +63,18 @@ describe("http storage", () => {
     await storage.storeParent({
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
     const parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:0"
-        }
+          correlationId: "corrId:0",
+        },
       },
       context
     );
@@ -83,11 +83,11 @@ describe("http storage", () => {
       id: "routingKey:corrId",
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       correlationId: "corrId",
-      done: true
+      done: true,
     });
   });
 
@@ -97,18 +97,18 @@ describe("http storage", () => {
     await storage.storeParent({
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
     const parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:0"
-        }
+          correlationId: "corrId:0",
+        },
       },
       context
     );
@@ -117,11 +117,11 @@ describe("http storage", () => {
       id: "routingKey:corrId",
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       correlationId: "corrId",
-      done: true
+      done: true,
     });
   });
 
@@ -131,19 +131,19 @@ describe("http storage", () => {
     await storage.storeParent({
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       childCount: 1,
-      context
+      context,
     });
     await assertRetry(async () => {
       await storage.storeChild(
         {
           meta: {
             notifyProcessed: "routingKey:corrId",
-            correlationId: "corrId:0"
-          }
+            correlationId: "corrId:0",
+          },
         },
         context
       );
@@ -152,23 +152,23 @@ describe("http storage", () => {
 
   it("should retry on 500 status codes", async () => {
     fakeApi.mount(manifest.entity.storeParent);
-    fakeApi.mount({...manifest.entity.storeChildNotFound, statusCode: 500});
+    fakeApi.mount({ ...manifest.entity.storeChildNotFound, statusCode: 500 });
     await storage.storeParent({
       message: {
         id: "some-id",
-        type: "some-type"
+        type: "some-type",
       },
       responseKey: "response",
       childCount: 1,
-      context
+      context,
     });
     await assertRetry(async () => {
       await storage.storeChild(
         {
           meta: {
             notifyProcessed: "routingKey:corrId",
-            correlationId: "corrId:0"
-          }
+            correlationId: "corrId:0",
+          },
         },
         context
       );
@@ -176,31 +176,31 @@ describe("http storage", () => {
   });
 
   it("should retry storing a parent on 500 status code", async () => {
-    fakeApi.mount({...manifest.entity.storeParent, statusCode: 500});
+    fakeApi.mount({ ...manifest.entity.storeParent, statusCode: 500 });
     await assertRetry(async () => {
       await storage.storeParent({
         message: {
           id: "some-id",
-          type: "some-type"
+          type: "some-type",
         },
         responseKey: "response",
         childCount: 2,
-        context
+        context,
       });
     });
   });
 
   it("should retry storing a parent on 404 status code", async () => {
-    fakeApi.mount({...manifest.entity.storeParent, statusCode: 404});
+    fakeApi.mount({ ...manifest.entity.storeParent, statusCode: 404 });
     await assertRetry(async () => {
       await storage.storeParent({
         message: {
           id: "some-id",
-          type: "some-type"
+          type: "some-type",
         },
         responseKey: "response",
         childCount: 2,
-        context
+        context,
       });
     });
   });

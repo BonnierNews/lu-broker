@@ -1,7 +1,7 @@
 "use strict";
 
 require("./ack-event-broker");
-const {crd, reject, internal} = require("../../lib/broker");
+const { crd, reject, internal } = require("../../lib/broker");
 const fakeAmqp = require("exp-fake-amqplib");
 const uuid = require("uuid");
 
@@ -37,7 +37,7 @@ function queue(broker) {
     }
     const messages = [];
     broker.subscribeTmp(routingKey, (msg, meta) => {
-      messages.push({key: meta.fields.routingKey, msg, meta});
+      messages.push({ key: meta.fields.routingKey, msg, meta });
       if (typeof done === "function" && messages.length >= waitForNumMessages) {
         const tmpFn = done;
         done = null; // reset done so it wont be called more than once.
@@ -89,12 +89,12 @@ function queue(broker) {
     publishMessage,
     publishWithMeta,
     subscribe,
-    resetMock
+    resetMock,
   };
 }
 
 module.exports = {
   reject: queue(reject),
   crd: queue(crd),
-  internal: queue(internal)
+  internal: queue(internal),
 };

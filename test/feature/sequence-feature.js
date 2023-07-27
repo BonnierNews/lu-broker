@@ -1,30 +1,30 @@
 "use strict";
 
-const {start, route, stop} = require("../..");
-const {crd} = require("../helpers/queue-helper");
+const { start, route, stop } = require("../..");
+const { crd } = require("../helpers/queue-helper");
 
 function handler() {
-  return {type: "i-was-here", id: "my-guid"};
+  return { type: "i-was-here", id: "my-guid" };
 }
 
 function one() {
-  return {type: "1-was-here", id: "my-guid-1"};
+  return { type: "1-was-here", id: "my-guid-1" };
 }
 
 function two() {
-  return {type: "2-was-here", id: "my-guid-2"};
+  return { type: "2-was-here", id: "my-guid-2" };
 }
 
 function three() {
-  return {type: "3-was-here", id: "my-guid-3"};
+  return { type: "3-was-here", id: "my-guid-3" };
 }
 
 function zero() {
-  return {type: "zero-was-here", id: 0};
+  return { type: "zero-was-here", id: 0 };
 }
 
 function multi() {
-  return [two(), three()];
+  return [ two(), three() ];
 }
 
 function empty() {
@@ -40,8 +40,8 @@ Feature("Lamda functions", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "some-correlation-id"},
-    attributes: {baz: true}
+    meta: { correlationId: "some-correlation-id" },
+    attributes: { baz: true },
   };
   Scenario("Trigger a flow with one lambda from a known trigger key", () => {
     before(() => {
@@ -51,9 +51,9 @@ Feature("Lamda functions", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -67,7 +67,7 @@ Feature("Lamda functions", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -77,13 +77,11 @@ Feature("Lamda functions", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   });
@@ -101,10 +99,10 @@ Feature("Lamda functions", () => {
               route(".perform.empty", empty),
               route(".perform.null", nuller),
               route(".perform.multi", multi),
-              route(".perform.zero", zero)
-            ]
-          }
-        ]
+              route(".perform.zero", zero),
+            ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -118,34 +116,34 @@ Feature("Lamda functions", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(6);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.multi-test.processed");
-      const {data} = msg;
+      const { data } = msg;
       data.should.eql([
         {
           type: "i-was-here",
           id: "my-guid",
           occurredAt: msg.data[0].occurredAt,
-          key: "event.multi-test.perform.one"
+          key: "event.multi-test.perform.one",
         },
         {
           type: "2-was-here",
           id: "my-guid-2",
           occurredAt: msg.data[1].occurredAt,
-          key: "event.multi-test.perform.multi"
+          key: "event.multi-test.perform.multi",
         },
         {
           type: "3-was-here",
           id: "my-guid-3",
           occurredAt: msg.data[1].occurredAt,
-          key: "event.multi-test.perform.multi"
+          key: "event.multi-test.perform.multi",
         },
         {
           type: "zero-was-here",
           id: 0,
           occurredAt: msg.data[3].occurredAt,
-          key: "event.multi-test.perform.zero"
-        }
+          key: "event.multi-test.perform.zero",
+        },
       ]);
     });
   });
@@ -158,9 +156,9 @@ Feature("Lamda functions", () => {
           {
             namespace: "event",
             name: "the-coolest-event-ever",
-            sequence: [route(".perform.one", one), route(".perform.two", two), route(".perform.three", three)]
-          }
-        ]
+            sequence: [ route(".perform.one", one), route(".perform.two", two), route(".perform.three", three) ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -175,7 +173,7 @@ Feature("Lamda functions", () => {
 
     Then("the flow should be completed", () => {
       flowMessages.length.should.eql(4);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.the-coolest-event-ever.processed");
       msg.should.eql({
         type: "event",
@@ -185,25 +183,23 @@ Feature("Lamda functions", () => {
             type: "1-was-here",
             id: "my-guid-1",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.the-coolest-event-ever.perform.one"
+            key: "event.the-coolest-event-ever.perform.one",
           },
           {
             type: "2-was-here",
             id: "my-guid-2",
             occurredAt: msg.data[1].occurredAt,
-            key: "event.the-coolest-event-ever.perform.two"
+            key: "event.the-coolest-event-ever.perform.two",
           },
           {
             type: "3-was-here",
             id: "my-guid-3",
             occurredAt: msg.data[2].occurredAt,
-            key: "event.the-coolest-event-ever.perform.three"
-          }
+            key: "event.the-coolest-event-ever.perform.three",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   });
@@ -216,14 +212,14 @@ Feature("Lamda functions", () => {
           {
             namespace: "event",
             name: "first",
-            sequence: [route(".perform.one", one), route("event.second.perform.two"), route(".perform.three", three)]
+            sequence: [ route(".perform.one", one), route("event.second.perform.two"), route(".perform.three", three) ],
           },
           {
             namespace: "event",
             name: "second",
-            sequence: [route(".perform.two", two)]
-          }
-        ]
+            sequence: [ route(".perform.two", two) ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -238,15 +234,15 @@ Feature("Lamda functions", () => {
 
     Then("the flow should be completed", () => {
       flowMessages
-        .map(({key}) => key)
+        .map(({ key }) => key)
         .should.eql([
           "event.first.perform.one",
           "event.first.event.second.perform.two",
           "event.first.perform.three",
-          "event.first.processed"
+          "event.first.processed",
         ]);
 
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.first.processed");
       msg.should.eql({
         type: "event",
@@ -256,25 +252,23 @@ Feature("Lamda functions", () => {
             type: "1-was-here",
             id: "my-guid-1",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.first.perform.one"
+            key: "event.first.perform.one",
           },
           {
             type: "2-was-here",
             id: "my-guid-2",
             occurredAt: msg.data[1].occurredAt,
-            key: "event.first.event.second.perform.two"
+            key: "event.first.event.second.perform.two",
           },
           {
             type: "3-was-here",
             id: "my-guid-3",
             occurredAt: msg.data[2].occurredAt,
-            key: "event.first.perform.three"
-          }
+            key: "event.first.perform.three",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   });

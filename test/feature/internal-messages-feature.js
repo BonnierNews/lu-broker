@@ -1,12 +1,12 @@
 "use strict";
 
 const sandbox = require("sinon").createSandbox();
-const {start, route, stop} = require("../..");
-const {crd, internal} = require("../helpers/queue-helper");
+const { start, route, stop } = require("../..");
+const { crd, internal } = require("../helpers/queue-helper");
 const memoryJobStorage = require("../../lib/job-storage");
 
 function handler() {
-  return {type: "i-was-here", id: "my-guid"};
+  return { type: "i-was-here", id: "my-guid" };
 }
 
 Feature("Internal messasges", () => {
@@ -24,9 +24,9 @@ Feature("Internal messasges", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
 
@@ -38,9 +38,9 @@ Feature("Internal messasges", () => {
     And("the broker job server is responding", async () => {
       await memoryJobStorage.storeParent({
         responseKey: "event.some-name.perform.one",
-        message: {id: "orig-message", type: "event", meta: {correlationId: "parent-corr"}},
+        message: { id: "orig-message", type: "event", meta: { correlationId: "parent-corr" } },
         childCount: 1,
-        context: {routingKey: "event.process.one", correlationId: "some-correlation-id"}
+        context: { routingKey: "event.process.one", correlationId: "some-correlation-id" },
       });
     });
 
@@ -49,20 +49,18 @@ Feature("Internal messasges", () => {
         type: "event",
         id: "some-id",
         data: [],
-        meta: {correlationId: "some-correlation-id:0", notifyProcessed: "event.process.one:some-correlation-id"}
+        meta: { correlationId: "some-correlation-id:0", notifyProcessed: "event.process.one:some-correlation-id" },
       });
     });
 
     Then("we should get a resumed message", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.perform.one");
       msg.should.eql({
         id: "orig-message",
         type: "event",
-        meta: {
-          correlationId: "parent-corr"
-        }
+        meta: { correlationId: "parent-corr" },
       });
     });
   });
@@ -75,18 +73,18 @@ Feature("Internal messasges", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
 
     Given("there is a parent in the job storage", async () => {
       await memoryJobStorage.storeParent({
         responseKey: "event.some-name.perform.one",
-        message: {id: "orig-message", type: "event", meta: {correlationId: "parent-corr"}},
+        message: { id: "orig-message", type: "event", meta: { correlationId: "parent-corr" } },
         childCount: 1,
-        context: {routingKey: "event.process.one", correlationId: "some-correlation-id"}
+        context: { routingKey: "event.process.one", correlationId: "some-correlation-id" },
       });
     });
 
@@ -99,7 +97,7 @@ Feature("Internal messasges", () => {
         type: "event",
         id: "some-id",
         data: [],
-        meta: {correlationId: "some-correlation-id:0", notifyProcessed: "event.process.one:some-correlation-id"}
+        meta: { correlationId: "some-correlation-id:0", notifyProcessed: "event.process.one:some-correlation-id" },
       });
     });
 

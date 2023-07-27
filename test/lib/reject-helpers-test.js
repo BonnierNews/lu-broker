@@ -2,7 +2,7 @@
 
 const config = require("exp-config");
 const fakeApi = require("../helpers/fake-api")();
-const {assertCaseCreated, assertRejected, assertRetry, assertUnrecoverable} = require("../../lib/test-helpers");
+const { assertCaseCreated, assertRejected, assertRetry, assertUnrecoverable } = require("../../lib/test-helpers");
 const {
   caseIf,
   caseUnless,
@@ -11,21 +11,21 @@ const {
   retryIf,
   retryUnless,
   unrecoverableIf,
-  unrecoverableUnless
+  unrecoverableUnless,
 } = require("../../lib/reject-helpers");
 
 const caseBody = {
-  contact: {id: "some-contact-id"},
+  contact: { id: "some-contact-id" },
   namespace: "BN",
   businessType: "b2c",
   origin: "your-system",
   subject: "Some subject",
   priority: "low",
-  description: "Something has happend that the system can't deal with",
+  description: "Something has happened that the system can't deal with",
   category: "Övriga ärenden",
   sourceQueue: "BNBO",
   owner: "BNBO",
-  externalReference: "some-id"
+  externalReference: "some-id",
 };
 
 Feature("Testing the reject-helpers", () => {
@@ -36,22 +36,22 @@ Feature("Testing the reject-helpers", () => {
     let response;
 
     Given("we can create a case in salesforce-api", () => {
-      const payload = {...caseBody};
+      const payload = { ...caseBody };
       delete payload.namespace;
       const request = {
         request: {
           path: `${config.salesforceApiUrl}/BN/case`,
           method: "post",
-          body: payload
+          body: payload,
         },
         statusCode: 200,
-        body: {id: "some-case-id"}
+        body: { id: "some-case-id" },
       };
       fakeApi.mount(request);
     });
 
     When("running a function that will create a case", async () => {
-      response = await assertCaseCreated(() => caseIf(true, {...caseBody}));
+      response = await assertCaseCreated(() => caseIf(true, { ...caseBody }));
     });
 
     And("we wait for the case to be created", async () => {
@@ -67,16 +67,16 @@ Feature("Testing the reject-helpers", () => {
     let response;
 
     Given("we can create a case in salesforce-api", () => {
-      const payload = {...caseBody};
+      const payload = { ...caseBody };
       delete payload.namespace;
       const request = {
         request: {
           path: `${config.salesforceApiUrl}/BN/case`,
           method: "post",
-          body: payload
+          body: payload,
         },
         statusCode: 200,
-        body: {id: "some-case-id"}
+        body: { id: "some-case-id" },
       };
       fakeApi.mount(request);
     });

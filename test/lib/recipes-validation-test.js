@@ -1,29 +1,29 @@
 "use strict";
 
-const {route} = require("../../index");
+const { route } = require("../../index");
 const recipesRepo = require("../../lib/recipe-repo");
 
 const passThru = (msg) => msg;
 
 describe("recipes-repo validation", () => {
-  const allowedVerbs = ["get-or-create", "get", "update", "upsert", "delete", "validate", "perform"];
+  const allowedVerbs = [ "get-or-create", "get", "update", "upsert", "delete", "validate", "perform" ];
   const events = [
     {
       name: "one",
       namespace: "event",
-      sequence: [route(".perform.first", passThru)]
+      sequence: [ route(".perform.first", passThru) ],
     },
     {
       name: "two",
       namespace: "event",
-      sequence: [route(".perform.second", passThru), route("event.one.perform.first")]
-    }
+      sequence: [ route(".perform.second", passThru), route("event.one.perform.first") ],
+    },
   ];
 
   describe("validate recipe structure", () => {
     it("should not allow unknown keys", () => {
       (function () {
-        recipesRepo.init([events[0], {...events[1], foobar: "foobar"}]);
+        recipesRepo.init([ events[0], { ...events[1], foobar: "foobar" } ]);
       }).should.throw(Error, 'value: "foobar" detail: "[1].foobar" is not allowed');
     });
   });
@@ -33,7 +33,7 @@ describe("recipes-repo validation", () => {
       (function () {
         recipesRepo.init([
           events[0],
-          {...events[1], sequence: [...events[1].sequence, route("event.one.perform.three")]}
+          { ...events[1], sequence: [ ...events[1].sequence, route("event.one.perform.three") ] },
         ]);
       }).should.throw(
         Error,
@@ -45,7 +45,7 @@ describe("recipes-repo validation", () => {
       (function () {
         recipesRepo.init([
           events[0],
-          {...events[1], sequence: [events[1].sequence[0], route("event.one.perform.first", passThru)]}
+          { ...events[1], sequence: [ events[1].sequence[0], route("event.one.perform.first", passThru) ] },
         ]);
       }).should.throw(Error, /Handler function not allowed for borrowed key: 'event.one.perform.first' in 'event.two'/);
     });
@@ -56,8 +56,8 @@ describe("recipes-repo validation", () => {
           {
             namespace: "event",
             name: "bax",
-            sequence: [route(".perform.one")]
-          }
+            sequence: [ route(".perform.one") ],
+          },
         ]);
       }).should.throw(Error, /No function given for key '.perform.one' in 'event.bax'/);
     });
@@ -68,8 +68,8 @@ describe("recipes-repo validation", () => {
           {
             namespace: "event",
             name: "bax",
-            sequence: [route(".perform.one", ".event.bar.hej")]
-          }
+            sequence: [ route(".perform.one", ".event.bar.hej") ],
+          },
         ]);
       }).should.throw(Error, /Only functions are supported as handlers/);
     });
@@ -80,8 +80,8 @@ describe("recipes-repo validation", () => {
           {
             namespace: "event",
             name: "bax",
-            sequence: [route(".perform.one", passThru), route(".perform.one", passThru)]
-          }
+            sequence: [ route(".perform.one", passThru), route(".perform.one", passThru) ],
+          },
         ]);
       }).should.throw(Error, 'value: {} detail: "[0].sequence[1]" contains a duplicate value');
     });
@@ -92,8 +92,8 @@ describe("recipes-repo validation", () => {
           {
             name: "one",
             namespace: "event",
-            sequence: [route(".perform.first.not-allowed", passThru)]
-          }
+            sequence: [ route(".perform.first.not-allowed", passThru) ],
+          },
         ]);
       }).should.throw(Error, /.perform.first.not-allowed/);
     });
@@ -104,8 +104,8 @@ describe("recipes-repo validation", () => {
           {
             name: "one",
             namespace: "event",
-            sequence: [route(".perform", passThru)]
-          }
+            sequence: [ route(".perform", passThru) ],
+          },
         ]);
       }).should.throw(Error, /.perform/);
     });
@@ -116,8 +116,8 @@ describe("recipes-repo validation", () => {
           {
             name: "one",
             namespace: "event",
-            sequence: [route(".optional.perform.first.not-allowed", passThru)]
-          }
+            sequence: [ route(".optional.perform.first.not-allowed", passThru) ],
+          },
         ]);
       }).should.throw(Error, /.optional.perform.first.not-allowed/);
     });
@@ -128,8 +128,8 @@ describe("recipes-repo validation", () => {
           {
             name: "one",
             namespace: "event",
-            sequence: [route(".optional.perform", passThru)]
-          }
+            sequence: [ route(".optional.perform", passThru) ],
+          },
         ]);
       }).should.throw(Error, /.optional.perform/);
     });
@@ -138,25 +138,19 @@ describe("recipes-repo validation", () => {
   describe("validate triggers", () => {
     it("should only allow functions for triggers", () => {
       (function () {
-        recipesRepo.init([events[0]], {
-          "trigger.baz": "hej.hopp"
-        });
+        recipesRepo.init([ events[0] ], { "trigger.baz": "hej.hopp" });
       }).should.throw(Error, /Only functions are supported as triggers/);
     });
 
     it("should only allow more than 2 parts in triggers", () => {
       (function () {
-        recipesRepo.init([events[0]], {
-          "trigger.baz.bar": passThru
-        });
+        recipesRepo.init([ events[0] ], { "trigger.baz.bar": passThru });
       }).should.throw(Error, /Invalid format for trigger.baz.bar/);
     });
 
     it("should only allow to start with trigger", () => {
       (function () {
-        recipesRepo.init([events[0]], {
-          "triggerzzz.baz": passThru
-        });
+        recipesRepo.init([ events[0] ], { "triggerzzz.baz": passThru });
       }).should.throw(Error, /Invalid format for triggerzzz.baz/);
     });
   });
@@ -166,13 +160,13 @@ describe("recipes-repo validation", () => {
       (function () {
         recipesRepo.init([
           events[0],
-          {...events[1], sequence: [route(".fimp.first", passThru), events[1].sequence[1]]}
+          { ...events[1], sequence: [ route(".fimp.first", passThru), events[1].sequence[1] ] },
         ]);
       }).should.throw(Error, /Invalid verb in .fimp.first/);
       (function () {
         recipesRepo.init([
           events[0],
-          {...events[1], sequence: [route("event.one.fimp.first", passThru), events[1].sequence[1]]}
+          { ...events[1], sequence: [ route("event.one.fimp.first", passThru), events[1].sequence[1] ] },
         ]);
       }).should.throw(Error, /Invalid verb in event.one.fimp.first/);
     });
@@ -183,8 +177,8 @@ describe("recipes-repo validation", () => {
         {
           name: "one",
           namespace: "event",
-          sequence: []
-        }
+          sequence: [],
+        },
       ];
       allowedVerbs.forEach((verb) => {
         innerEvents[0].sequence.push(route(`.${verb}.anything`, passThru));
@@ -200,18 +194,18 @@ describe("recipes-repo validation", () => {
         {
           name: "one",
           namespace: "event",
-          sequence: []
+          sequence: [],
         },
         {
           name: "two",
           namespace: "event",
-          sequence: []
+          sequence: [],
         },
         {
           name: "three",
           namespace: "event",
-          sequence: []
-        }
+          sequence: [],
+        },
       ];
       allowedVerbs.forEach((verb) => {
         innerEvents[0].sequence.push(route(`.${verb}.anything`, passThru));
@@ -230,8 +224,8 @@ describe("recipes-repo validation", () => {
         {
           name: "one",
           namespace: "event",
-          sequence: []
-        }
+          sequence: [],
+        },
       ];
       allowedVerbs.forEach((verb) => {
         innerEvents[0].sequence.push(route(`.optional.${verb}.anything`, passThru));
@@ -247,8 +241,8 @@ describe("recipes-repo validation", () => {
         {
           name: "one",
           namespace: "event",
-          sequence: []
-        }
+          sequence: [],
+        },
       ];
       allowedVerbs.forEach((verb) => {
         innerEvents[0].sequence.push(route(`.baz.${verb}.anything`, passThru));
@@ -263,7 +257,7 @@ describe("recipes-repo validation", () => {
   describe("validate namespace names", () => {
     it("should not allow unknown namespaces", () => {
       (function () {
-        recipesRepo.init([events[0], {...events[1], namespace: "foobar"}]);
+        recipesRepo.init([ events[0], { ...events[1], namespace: "foobar" } ]);
       }).should.throw(
         Error,
         'value: "foobar" detail: "[1].namespace" must be one of [event, action, sequence, sub-sequence]'
@@ -275,23 +269,23 @@ describe("recipes-repo validation", () => {
           {
             namespace: "event",
             name: "one",
-            sequence: [route(".perform.first", passThru)]
+            sequence: [ route(".perform.first", passThru) ],
           },
           {
             namespace: "action",
             name: "two",
-            sequence: [route(".perform.second", passThru)]
+            sequence: [ route(".perform.second", passThru) ],
           },
           {
             namespace: "sequence",
             name: "three",
-            sequence: [route(".perform.third", passThru)]
+            sequence: [ route(".perform.third", passThru) ],
           },
           {
             namespace: "sub-sequence",
             name: "four",
-            sequence: [route(".perform.fourth", passThru)]
-          }
+            sequence: [ route(".perform.fourth", passThru) ],
+          },
         ]);
       }).should.not.throw(Error);
     });
@@ -305,8 +299,8 @@ describe("recipes-repo validation", () => {
             namespace: "sub-sequence",
             name: "one",
             executionDelay: 22,
-            sequence: [route(".perform.first", passThru)]
-          }
+            sequence: [ route(".perform.first", passThru) ],
+          },
         ]);
       }).should.not.throw(Error);
     });
@@ -318,8 +312,8 @@ describe("recipes-repo validation", () => {
             namespace: "sub-sequence",
             name: "one",
             executionDelay: "blaj",
-            sequence: [route(".perform.first", passThru)]
-          }
+            sequence: [ route(".perform.first", passThru) ],
+          },
         ]);
       }).should.throw(Error);
     });
@@ -331,8 +325,8 @@ describe("recipes-repo validation", () => {
             namespace: "sub-sequence",
             name: "one",
             executionDelay: -1,
-            sequence: [route(".perform.first", passThru)]
-          }
+            sequence: [ route(".perform.first", passThru) ],
+          },
         ]);
       }).should.throw(Error);
     });
@@ -344,8 +338,8 @@ describe("recipes-repo validation", () => {
             namespace: "sub-sequence",
             name: "one",
             executionDelay: 2 * 3600 * 1000,
-            sequence: [route(".perform.first", passThru)]
-          }
+            sequence: [ route(".perform.first", passThru) ],
+          },
         ]);
       }).should.throw(Error);
     });
@@ -357,8 +351,8 @@ describe("recipes-repo validation", () => {
             namespace: "sequence",
             name: "one",
             executionDelay: 22,
-            sequence: [route(".perform.first", passThru)]
-          }
+            sequence: [ route(".perform.first", passThru) ],
+          },
         ]);
       }).should.throw(Error);
     });
@@ -367,18 +361,18 @@ describe("recipes-repo validation", () => {
   describe("validate event names", () => {
     it("should not allow duplicates", () => {
       (function () {
-        recipesRepo.init([...events, events[0]]);
+        recipesRepo.init([ ...events, events[0] ]);
       }).should.throw(Error, /duplicate value/);
     });
     it("should not allow invalid chars", () => {
       (function () {
-        recipesRepo.init([events[0], {...events[1], name: ".hej"}]);
+        recipesRepo.init([ events[0], { ...events[1], name: ".hej" } ]);
       }).should.throw(
         Error,
         '.hej" detail: "[1].name" with value ".hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
       );
       (function () {
-        recipesRepo.init([events[0], {...events[1], name: "#hej"}]);
+        recipesRepo.init([ events[0], { ...events[1], name: "#hej" } ]);
       }).should.throw(
         Error,
         'value: "#hej" detail: "[1].name" with value "#hej" fails to match the required pattern: /^[a-z0-9][-a-z0-9.]*$/'
@@ -389,7 +383,7 @@ describe("recipes-repo validation", () => {
   describe("validate unrecoverable keys", () => {
     it("should only allow *", () => {
       (function () {
-        recipesRepo.init([{...events[1], unrecoverable: [{baz: () => {}}]}]);
+        recipesRepo.init([ { ...events[1], unrecoverable: [ { baz: () => {} } ] } ]);
       }).should.throw(Error, /Invalid key in unrecoverable: baz in event.two, allowed are '*'/);
     });
   });

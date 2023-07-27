@@ -1,12 +1,12 @@
 "use strict";
 
-const {start, route, stop} = require("../..");
-const {crd, reject} = require("../helpers/queue-helper");
-const {setupWaiter} = require("../helpers/internal-helpers");
+const { start, route, stop } = require("../..");
+const { crd, reject } = require("../helpers/queue-helper");
+const { setupWaiter } = require("../helpers/internal-helpers");
 const jobStorage = require("../../lib/job-storage");
 
 function handler() {
-  return {type: "i-was-here", id: "my-guid"};
+  return { type: "i-was-here", id: "my-guid" };
 }
 
 Feature("Triggers", () => {
@@ -14,17 +14,15 @@ Feature("Triggers", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "some-correlation-id"},
-    attributes: {baz: true}
+    meta: { correlationId: "some-correlation-id" },
+    attributes: { baz: true },
   };
   function trigger() {
     return {
       type: "trigger",
       id: "event.some-name",
       source,
-      meta: {
-        correlationId: "some-correlation-id"
-      }
+      meta: { correlationId: "some-correlation-id" },
     };
   }
 
@@ -34,10 +32,8 @@ Feature("Triggers", () => {
       triggers.push({
         type: "trigger",
         id: "event.some-name",
-        source: {...incomingSource, index: i},
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        source: { ...incomingSource, index: i },
+        meta: { correlationId: "some-correlation-id" },
       });
     }
     return triggers;
@@ -52,7 +48,7 @@ Feature("Triggers", () => {
       type: "trigger",
       id: "event.some-name",
       source,
-      correlationId: "some-other-correlation-id"
+      correlationId: "some-other-correlation-id",
     };
   }
 
@@ -62,9 +58,7 @@ Feature("Triggers", () => {
         type: "trigger",
         id: "event.some-name",
         source,
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   }
@@ -77,16 +71,14 @@ Feature("Triggers", () => {
     before(() => {
       crd.resetMock();
       start({
-        triggers: {
-          "trigger.some-generic-name": trigger
-        },
+        triggers: { "trigger.some-generic-name": trigger },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages, waitForMessages;
@@ -102,7 +94,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -112,13 +104,11 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
         source,
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   });
@@ -127,16 +117,14 @@ Feature("Triggers", () => {
     before(() => {
       crd.resetMock();
       start({
-        triggers: {
-          "trigger.some-generic-name": triggerAsync
-        },
+        triggers: { "trigger.some-generic-name": triggerAsync },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages, waitForMessages;
@@ -152,7 +140,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -162,13 +150,11 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
         source,
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   });
@@ -177,16 +163,14 @@ Feature("Triggers", () => {
     before(() => {
       crd.resetMock();
       start({
-        triggers: {
-          "trigger.some-generic-name": triggerMultiple
-        },
+        triggers: { "trigger.some-generic-name": triggerMultiple },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages, waitForMessages;
@@ -196,15 +180,15 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 2});
+      await crd.publishMessage("trigger.some-generic-name", { ...source, numToTrigger: 2 });
       await waitForMessages;
     });
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(4);
-      const idxs = flowMessages.filter(({key}) => key === "event.some-name.processed").map(({msg}) => msg.source.index);
+      const idxs = flowMessages.filter(({ key }) => key === "event.some-name.processed").map(({ msg }) => msg.source.index);
       idxs.sort();
-      idxs.should.eql([0, 1]);
+      idxs.should.eql([ 0, 1 ]);
     });
   });
 
@@ -213,16 +197,14 @@ Feature("Triggers", () => {
       crd.resetMock();
       reject.resetMock();
       start({
-        triggers: {
-          "trigger.some-generic-name": triggerMultiple
-        },
+        triggers: { "trigger.some-generic-name": triggerMultiple },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -233,7 +215,7 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 0});
+      await crd.publishMessage("trigger.some-generic-name", { ...source, numToTrigger: 0 });
     });
 
     And("the flow should be completed", () => {
@@ -251,16 +233,14 @@ Feature("Triggers", () => {
       reject.resetMock();
 
       start({
-        triggers: {
-          "trigger.some-generic-name": triggerNothing
-        },
+        triggers: { "trigger.some-generic-name": triggerNothing },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -271,7 +251,7 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishMessage("trigger.some-generic-name", {...source, numToTrigger: 0});
+      await crd.publishMessage("trigger.some-generic-name", { ...source, numToTrigger: 0 });
     });
 
     And("the flow should be completed", () => {
@@ -287,16 +267,14 @@ Feature("Triggers", () => {
     before(() => {
       crd.resetMock();
       start({
-        triggers: {
-          "trigger.some-other-generic-name": triggerWithCorrelationId
-        },
+        triggers: { "trigger.some-other-generic-name": triggerWithCorrelationId },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages, waitForMessages;
@@ -312,7 +290,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -322,14 +300,14 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
         source,
         meta: {
           correlationId: "some-other-correlation-id",
-          parentCorrelationId: "some-correlation-id"
-        }
+          parentCorrelationId: "some-correlation-id",
+        },
       });
     });
   });
@@ -342,10 +320,10 @@ Feature("Triggers", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)],
-            useParentCorrelationId: true
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+            useParentCorrelationId: true,
+          },
+        ],
       });
     });
     let flowMessages, waitForMessages;
@@ -355,15 +333,13 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishWithMeta("trigger.event.some-name", source, {
-        headers: {"x-notify-processed": true}
-      });
+      await crd.publishWithMeta("trigger.event.some-name", source, { headers: { "x-notify-processed": true } });
       await waitForMessages;
     });
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       const newCorrId = msg.meta.correlationId.split(":")[1];
       newCorrId.should.be.a.uuid("v4");
@@ -375,15 +351,15 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
         meta: {
           correlationId: `some-correlation-id:${newCorrId}`,
           parentCorrelationId: "some-correlation-id",
-          notifyProcessed: true
-        }
+          notifyProcessed: true,
+        },
       });
     });
   });
@@ -396,10 +372,10 @@ Feature("Triggers", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
+            sequence: [ route(".perform.one", handler) ],
+          },
         ],
-        useParentCorrelationId: true
+        useParentCorrelationId: true,
       });
     });
 
@@ -416,7 +392,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       const newCorrId = msg.meta.correlationId.split(":")[1];
       newCorrId.should.be.a.uuid("v4");
@@ -428,14 +404,14 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
         meta: {
           correlationId: `some-correlation-id:${newCorrId}`,
-          parentCorrelationId: "some-correlation-id"
-        }
+          parentCorrelationId: "some-correlation-id",
+        },
       });
     });
   });
@@ -448,9 +424,9 @@ Feature("Triggers", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
 
@@ -467,7 +443,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -477,13 +453,11 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
-        meta: {
-          correlationId: `some-correlation-id`
-        }
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
+        meta: { correlationId: "some-correlation-id" },
       });
     });
   });
@@ -496,9 +470,9 @@ Feature("Triggers", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
 
@@ -509,15 +483,13 @@ Feature("Triggers", () => {
     });
 
     When("we publish an order on a trigger key", async () => {
-      await crd.publishWithMeta("trigger.event.some-name", source, {
-        headers: {"x-parent-correlation-id": "this-is-parent"}
-      });
+      await crd.publishWithMeta("trigger.event.some-name", source, { headers: { "x-parent-correlation-id": "this-is-parent" } });
       await waitForMessages;
     });
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -527,14 +499,14 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
         meta: {
-          correlationId: `some-correlation-id`,
-          parentCorrelationId: "this-is-parent"
-        }
+          correlationId: "some-correlation-id",
+          parentCorrelationId: "this-is-parent",
+        },
       });
     });
   });
@@ -547,14 +519,14 @@ Feature("Triggers", () => {
           {
             namespace: "event",
             name: "some-other-name",
-            sequence: [route(".perform.one", trigger)]
+            sequence: [ route(".perform.one", trigger) ],
           },
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", handler)]
-          }
-        ]
+            sequence: [ route(".perform.one", handler) ],
+          },
+        ],
       });
     });
     let flowMessages;
@@ -575,7 +547,7 @@ Feature("Triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages[1];
+      const { msg, key } = flowMessages[1];
       key.should.eql("event.some-other-name.processed");
       msg.should.eql({
         type: "event",
@@ -585,28 +557,24 @@ Feature("Triggers", () => {
             type: "trigger",
             id: "event.some-name",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-other-name.perform.one"
-          }
+            key: "event.some-other-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
+        meta: { correlationId: "some-correlation-id" },
       });
     });
 
     And("there should be an internal message", () => {
       triggerMessages.length.should.eql(2);
-      const {msg, key} = triggerMessages.pop();
+      const { msg, key } = triggerMessages.pop();
       key.should.eql("trigger.event.some-name");
-      msg.should.eql({
-        ...source
-      });
+      msg.should.eql({ ...source });
     });
 
     And("the other flow should triggered and be completed", () => {
       secondFlowMessages.length.should.eql(2);
-      const {msg, key} = secondFlowMessages.pop();
+      const { msg, key } = secondFlowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -616,15 +584,15 @@ Feature("Triggers", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
         meta: {
           correlationId: "some-correlation-id:0",
           notifyProcessed: "event.some-other-name.perform.one:some-correlation-id",
-          parentCorrelationId: "some-correlation-id"
-        }
+          parentCorrelationId: "some-correlation-id",
+        },
       });
     });
   });

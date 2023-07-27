@@ -1,43 +1,43 @@
 "use strict";
 
-const {start, route, stop} = require("../..");
-const {crd, reject} = require("../helpers/queue-helper");
+const { start, route, stop } = require("../..");
+const { crd, reject } = require("../helpers/queue-helper");
 const fakeApi = require("../helpers/fake-api")();
 const config = require("exp-config");
 
 const caseBody = {
-  contact: {id: "some-contact-id"},
+  contact: { id: "some-contact-id" },
   namespace: "BN",
   businessType: "b2c",
   origin: "your-system",
   subject: "Some subject",
   priority: "low",
-  description: "Something has happend that the system can't deal with",
+  description: "Something has happened that the system can't deal with",
   category: "Övriga ärenden",
   sourceQueue: "BNBO",
   owner: "BNBO",
-  externalReference: "some-id"
+  externalReference: "some-id",
 };
 async function caseIfHandler(message, context) {
-  const {caseIf} = context;
-  await caseIf(true, {...caseBody});
+  const { caseIf } = context;
+  await caseIf(true, { ...caseBody });
 }
 
 async function caseUnlessHandler(message, context) {
-  const {caseUnless} = context;
-  await caseUnless(false, {...caseBody});
+  const { caseUnless } = context;
+  await caseUnless(false, { ...caseBody });
 }
 
 async function missingRequiredPropCaseHandler(message, context) {
-  const {caseIf} = context;
-  const badCaseBody = {...caseBody};
+  const { caseIf } = context;
+  const badCaseBody = { ...caseBody };
   delete badCaseBody.origin;
   await caseIf(true, badCaseBody);
 }
 
 async function unallowedPropCaseHandler(message, context) {
-  const {caseIf} = context;
-  const badCaseBody = {...caseBody};
+  const { caseIf } = context;
+  const badCaseBody = { ...caseBody };
   badCaseBody.anUnallowedProp = "tjohoppsan";
   await caseIf(true, badCaseBody);
 }
@@ -47,8 +47,8 @@ Feature("Create sfdc case", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "some-correlation-id"},
-    attributes: {baz: true}
+    meta: { correlationId: "some-correlation-id" },
+    attributes: { baz: true },
   };
 
   Scenario("Create a sfdc case with if and exit the sequence", () => {
@@ -60,9 +60,9 @@ Feature("Create sfdc case", () => {
           {
             namespace: "sequence",
             name: "some-name",
-            sequence: [route(".perform.one", caseIfHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", caseIfHandler) ],
+          },
+        ],
       });
     });
 
@@ -73,16 +73,16 @@ Feature("Create sfdc case", () => {
 
     let caseMount;
     And("we can create a case in salesforce-api", () => {
-      const payload = {...caseBody};
+      const payload = { ...caseBody };
       delete payload.namespace;
       const request = {
         request: {
           path: `${config.salesforceApiUrl}/BN/case`,
           method: "post",
-          body: payload
+          body: payload,
         },
         statusCode: 200,
-        body: {id: "some-case-id"}
+        body: { id: "some-case-id" },
       };
       caseMount = fakeApi.mount(request);
     });
@@ -105,13 +105,13 @@ Feature("Create sfdc case", () => {
 
     And("the processed message should hold data from the created case", () => {
       processedMessages[0].msg.data
-        .map(({id, key, type}) => Object({type, key, id}))
+        .map(({ id, key, type }) => Object({ type, key, id }))
         .should.eql([
           {
             id: "some-case-id",
             key: "sequence.some-name.perform.one.sfdc-case-created",
-            type: "sfdc__case"
-          }
+            type: "sfdc__case",
+          },
         ]);
     });
   });
@@ -125,9 +125,9 @@ Feature("Create sfdc case", () => {
           {
             namespace: "sequence",
             name: "some-name",
-            sequence: [route(".perform.one", caseUnlessHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", caseUnlessHandler) ],
+          },
+        ],
       });
     });
 
@@ -138,16 +138,16 @@ Feature("Create sfdc case", () => {
 
     let caseMount;
     And("we can create a case in salesforce-api", () => {
-      const payload = {...caseBody};
+      const payload = { ...caseBody };
       delete payload.namespace;
       const request = {
         request: {
           path: `${config.salesforceApiUrl}/BN/case`,
           method: "post",
-          body: payload
+          body: payload,
         },
         statusCode: 200,
-        body: {id: "some-case-id"}
+        body: { id: "some-case-id" },
       };
       caseMount = fakeApi.mount(request);
     });
@@ -170,13 +170,13 @@ Feature("Create sfdc case", () => {
 
     And("the processed message should hold data from the created case", () => {
       processedMessages[0].msg.data
-        .map(({id, key, type}) => Object({type, key, id}))
+        .map(({ id, key, type }) => Object({ type, key, id }))
         .should.eql([
           {
             id: "some-case-id",
             key: "sequence.some-name.perform.one.sfdc-case-created",
-            type: "sfdc__case"
-          }
+            type: "sfdc__case",
+          },
         ]);
     });
   });
@@ -190,9 +190,9 @@ Feature("Create sfdc case", () => {
           {
             namespace: "sequence",
             name: "some-name",
-            sequence: [route(".perform.one", missingRequiredPropCaseHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", missingRequiredPropCaseHandler) ],
+          },
+        ],
       });
     });
 
@@ -240,9 +240,9 @@ Feature("Create sfdc case", () => {
           {
             namespace: "sequence",
             name: "some-name",
-            sequence: [route(".perform.one", unallowedPropCaseHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", unallowedPropCaseHandler) ],
+          },
+        ],
       });
     });
 

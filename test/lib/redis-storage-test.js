@@ -2,10 +2,10 @@
 const storage = require("../../lib/redis/redis-job-storage");
 const redis = require("../../lib/redis/redis");
 const buildContext = require("../../lib/context");
-const {assertRetry} = require("../../lib/test-helpers");
+const { assertRetry } = require("../../lib/test-helpers");
 
 describe("redis job storage", () => {
-  const context = buildContext({meta: {correlationId: "corrId"}}, {fields: {routingKey: "routingKey"}, properties: {}});
+  const context = buildContext({ meta: { correlationId: "corrId" } }, { fields: { routingKey: "routingKey" }, properties: {} });
 
   afterEach(storage.reset);
   it("should store a parent", async () => {
@@ -13,14 +13,14 @@ describe("redis job storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
     parent.should.eql({
       childCount: 2,
       id: "routingKey:corrId",
       correlationId: "corrId",
       message: "msg",
-      responseKey: "response"
+      responseKey: "response",
     });
   });
 
@@ -29,15 +29,15 @@ describe("redis job storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 1,
-      context
+      context,
     });
 
     const parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:22"
-        }
+          correlationId: "corrId:22",
+        },
       },
       context
     );
@@ -47,7 +47,7 @@ describe("redis job storage", () => {
       message: "msg",
       correlationId: "corrId",
       responseKey: "response",
-      done: true
+      done: true,
     });
   });
 
@@ -56,15 +56,15 @@ describe("redis job storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
 
     let parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:0"
-        }
+          correlationId: "corrId:0",
+        },
       },
       context
     );
@@ -74,15 +74,15 @@ describe("redis job storage", () => {
       message: "msg",
       correlationId: "corrId",
       responseKey: "response",
-      done: false
+      done: false,
     });
 
     parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:1"
-        }
+          correlationId: "corrId:1",
+        },
       },
       context
     );
@@ -93,7 +93,7 @@ describe("redis job storage", () => {
       message: "msg",
       correlationId: "corrId",
       responseKey: "response",
-      done: true
+      done: true,
     });
   });
 
@@ -102,15 +102,15 @@ describe("redis job storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context
+      context,
     });
 
     let parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:1"
-        }
+          correlationId: "corrId:1",
+        },
       },
       context
     );
@@ -120,15 +120,15 @@ describe("redis job storage", () => {
       message: "msg",
       correlationId: "corrId",
       responseKey: "response",
-      done: false
+      done: false,
     });
 
     parent = await storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:1"
-        }
+          correlationId: "corrId:1",
+        },
       },
       context
     );
@@ -139,7 +139,7 @@ describe("redis job storage", () => {
       message: "msg",
       correlationId: "corrId",
       responseKey: "response",
-      done: false
+      done: false,
     });
   });
 
@@ -149,7 +149,7 @@ describe("redis job storage", () => {
         message: "msg",
         responseKey: "response",
         childCount: 2,
-        context
+        context,
       });
       redis.del(`${context.routingKey}:${context.correlationId}`);
 
@@ -158,8 +158,8 @@ describe("redis job storage", () => {
           {
             meta: {
               notifyProcessed: "routingKey:corrId",
-              correlationId: "corrId:0"
-            }
+              correlationId: "corrId:0",
+            },
           },
           context
         );
@@ -171,14 +171,14 @@ describe("redis job storage", () => {
         message: "msg",
         responseKey: "response",
         childCount: 2,
-        context
+        context,
       });
       await storage.storeChild(
         {
           meta: {
             notifyProcessed: "routingKey:corrId",
-            correlationId: "corrId:1"
-          }
+            correlationId: "corrId:1",
+          },
         },
         context
       );
@@ -190,8 +190,8 @@ describe("redis job storage", () => {
           {
             meta: {
               notifyProcessed: "routingKey:corrId",
-              correlationId: "corrId:0"
-            }
+              correlationId: "corrId:0",
+            },
           },
           context
         );

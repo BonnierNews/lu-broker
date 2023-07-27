@@ -1,6 +1,6 @@
 "use strict";
 
-const {createSandbox} = require("sinon");
+const { createSandbox } = require("sinon");
 
 const GoogleAuth = require("google-auth-library");
 
@@ -18,8 +18,8 @@ function authenticated() {
   stub.getIdTokenClient = () => {
     return {
       getRequestHeaders: () => {
-        return {Authorization: "Bearer some-gcp-token"};
-      }
+        return { Authorization: "Bearer some-gcp-token" };
+      },
     };
   };
 }
@@ -29,5 +29,5 @@ module.exports = {
     sandbox.restore();
     stub = null;
   },
-  authenticated
+  authenticated,
 };

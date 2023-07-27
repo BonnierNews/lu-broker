@@ -10,10 +10,10 @@ const storeParent = {
       correlationId: "corrId",
       message: {
         type: "some-type",
-        id: "some-id"
+        id: "some-id",
       },
-      responseKey: "response"
-    }
+      responseKey: "response",
+    },
   },
   body: {
     type: "broker-job",
@@ -22,27 +22,25 @@ const storeParent = {
       childCount: 2,
       message: {
         type: "some-type",
-        id: "some-id"
+        id: "some-id",
       },
       responseKey: "response",
-      correlationId: "corrId"
+      correlationId: "corrId",
     },
-    meta: {
-      correlationId: "some-correlation-id"
-    }
-  }
+    meta: { correlationId: "some-correlation-id" },
+  },
 };
 
 const storeParentConflict = {
   ...storeParent,
   statusCode: 409,
-  body: {...storeParent.body, errors: [{detail: "conflict"}]}
+  body: { ...storeParent.body, errors: [ { detail: "conflict" } ] },
 };
 
 const storeChild = {
   request: {
     path: "/entity/v2/broker-job/routingKey:corrId/0",
-    method: "put"
+    method: "put",
   },
   body: {
     type: "broker-job",
@@ -51,28 +49,26 @@ const storeChild = {
       childCount: 2,
       message: {
         type: "some-type",
-        id: "some-id"
+        id: "some-id",
       },
       responseKey: "response",
       correlationId: "corrId",
-      done: true
+      done: true,
     },
-    meta: {
-      correlationId: "some-correlation-id"
-    }
-  }
+    meta: { correlationId: "some-correlation-id" },
+  },
 };
 
 const storeChildConflict = {
   ...storeChild,
   statusCode: 409,
-  body: {...storeChild.body, errors: [{detail: "conflict"}]}
+  body: { ...storeChild.body, errors: [ { detail: "conflict" } ] },
 };
 
 const storeChildNotFound = {
   ...storeChild,
   statusCode: 404,
-  body: {errors: [{detail: "Not Found"}]}
+  body: { errors: [ { detail: "Not Found" } ] },
 };
 
 const manifest = {
@@ -81,8 +77,8 @@ const manifest = {
     storeParentConflict,
     storeChild,
     storeChildConflict,
-    storeChildNotFound
-  }
+    storeChildNotFound,
+  },
 };
 
 module.exports = manifest;
