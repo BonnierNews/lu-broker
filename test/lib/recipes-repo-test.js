@@ -1,6 +1,6 @@
 "use strict";
 
-const {route} = require("../../index");
+const { route } = require("../../index");
 const recipesRepo = require("../../lib/recipe-repo");
 
 const passThru = (msg) => msg;
@@ -12,23 +12,21 @@ describe("recipes-repo", () => {
     {
       namespace: "event",
       name: "baz",
-      sequence: [route(".perform.one", passThru), route(".perform.two", passThru), route(".perform.three", passThru)]
+      sequence: [ route(".perform.one", passThru), route(".perform.two", passThru), route(".perform.three", passThru) ],
     },
     {
       namespace: "event",
       name: "bar",
-      sequence: [route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru)]
+      sequence: [ route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru) ],
     },
     {
       namespace: "event",
       name: "unrecoverable",
-      sequence: [route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru)],
-      unrecoverable: [route("*", unrecoverable)]
-    }
+      sequence: [ route(".validate.one", passThru), route("event.baz.perform.one"), route(".perform.two", passThru) ],
+      unrecoverable: [ route("*", unrecoverable) ],
+    },
   ];
-  const triggers = {
-    "trigger.some-value": passThru
-  };
+  const triggers = { "trigger.some-value": passThru };
   before(() => {
     repo = recipesRepo.init(events, triggers);
   });
@@ -65,7 +63,7 @@ describe("recipes-repo", () => {
     });
 
     it("should return each event-name as key", () => {
-      repo.keys().should.eql(["event.baz.#", "event.bar.#", "event.unrecoverable.#"]);
+      repo.keys().should.eql([ "event.baz.#", "event.bar.#", "event.unrecoverable.#" ]);
     });
   });
 
@@ -76,14 +74,14 @@ describe("recipes-repo", () => {
     });
 
     it("should return only triggers if no events", () => {
-      const nullRepo = recipesRepo.init([], {"trigger.baz": passThru});
-      nullRepo.triggerKeys().should.eql(["trigger.baz"]);
+      const nullRepo = recipesRepo.init([], { "trigger.baz": passThru });
+      nullRepo.triggerKeys().should.eql([ "trigger.baz" ]);
     });
 
     it("should return each event-name as key", () => {
       repo
         .triggerKeys()
-        .should.eql(["trigger.some-value", "trigger.event.baz", "trigger.event.bar", "trigger.event.unrecoverable"]);
+        .should.eql([ "trigger.some-value", "trigger.event.baz", "trigger.event.bar", "trigger.event.unrecoverable" ]);
     });
   });
 
@@ -94,12 +92,12 @@ describe("recipes-repo", () => {
     });
 
     it("should return nothing if no events", () => {
-      const nullRepo = recipesRepo.init([], {"trigger.baz": passThru});
+      const nullRepo = recipesRepo.init([], { "trigger.baz": passThru });
       nullRepo.processedKeys().should.eql([]);
     });
 
     it("should return each event-name as key", () => {
-      repo.processedKeys().should.eql(["event.baz.processed", "event.bar.processed", "event.unrecoverable.processed"]);
+      repo.processedKeys().should.eql([ "event.baz.processed", "event.bar.processed", "event.unrecoverable.processed" ]);
     });
   });
 
@@ -110,7 +108,7 @@ describe("recipes-repo", () => {
     });
 
     it("should return nothing if no events", () => {
-      const nullRepo = recipesRepo.init([], {"trigger.baz": passThru});
+      const nullRepo = recipesRepo.init([], { "trigger.baz": passThru });
       nullRepo.processedUnrecoverableKeys().should.eql([]);
     });
 
@@ -120,7 +118,7 @@ describe("recipes-repo", () => {
         .should.eql([
           "event.unrecoverable.validate.one.unrecoverable.processed",
           "event.unrecoverable.event.baz.perform.one.unrecoverable.processed",
-          "event.unrecoverable.perform.two.unrecoverable.processed"
+          "event.unrecoverable.perform.two.unrecoverable.processed",
         ]);
     });
   });
@@ -158,13 +156,13 @@ describe("recipes-repo", () => {
         {
           namespace: "event",
           name: "one",
-          sequence: [route("event.two.perform.two")]
+          sequence: [ route("event.two.perform.two") ],
         },
         {
           namespace: "event",
           name: "two",
-          sequence: [route(".perform.two", passThru)]
-        }
+          sequence: [ route(".perform.two", passThru) ],
+        },
       ]);
       otherRepo.handler("event.one.event.two.perform.two").should.eql(passThru);
     });
@@ -175,40 +173,40 @@ describe("recipes-repo", () => {
       {
         namespace: "event",
         name: "dad",
-        sequence: [route(".perform.one", passThru)]
+        sequence: [ route(".perform.one", passThru) ],
       },
       {
         namespace: "sub-sequence",
         name: "one",
         executionDelay: 22,
-        sequence: [route(".perform.two", passThru)]
+        sequence: [ route(".perform.two", passThru) ],
       },
       {
         namespace: "sub-sequence",
         name: "two",
         executionDelay: 0,
-        sequence: [route(".perform.three", passThru)]
+        sequence: [ route(".perform.three", passThru) ],
       },
       {
         namespace: "sub-sequence",
         name: "default",
-        sequence: [route(".perform.four", passThru)]
-      }
+        sequence: [ route(".perform.four", passThru) ],
+      },
     ]);
     it("should key keys for sub-sequences", () => {
       otherRepo
         .workerQueues()
-        .map(({key}) => key)
-        .should.eql(["wq.trigger.sub-sequence.one", "wq.trigger.sub-sequence.two", "wq.trigger.sub-sequence.default"]);
+        .map(({ key }) => key)
+        .should.eql([ "wq.trigger.sub-sequence.one", "wq.trigger.sub-sequence.two", "wq.trigger.sub-sequence.default" ]);
     });
     it("should get queuenames for sub-sequences", () => {
       otherRepo
         .workerQueues()
-        .map(({queue}) => queue)
+        .map(({ queue }) => queue)
         .should.eql([
           "lu-broker-workqueue-one-test",
           "lu-broker-workqueue-two-test",
-          "lu-broker-workqueue-default-test"
+          "lu-broker-workqueue-default-test",
         ]);
     });
 

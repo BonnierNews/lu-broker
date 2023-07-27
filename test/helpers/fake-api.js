@@ -29,7 +29,7 @@ function init(url = config.proxyUrl) {
       return testData.map(mount);
     }
     let actualBody;
-    const {request} = testData;
+    const { request } = testData;
     const mock = api[request.method.toLowerCase()](request.path, (body) => {
       actualBody = body;
       return true;
@@ -40,7 +40,7 @@ function init(url = config.proxyUrl) {
     }
 
     if (request.headers) {
-      for (const [key, val] of Object.entries(request.headers)) {
+      for (const [ key, val ] of Object.entries(request.headers)) {
         mock.matchHeader(key, val);
       }
     }
@@ -55,7 +55,7 @@ function init(url = config.proxyUrl) {
       hasExpectedBody: (body) => {
         return actualBody.should.eql(body || request.body);
       },
-      postedBody: () => actualBody
+      postedBody: () => actualBody,
     };
   }
   return {
@@ -71,7 +71,7 @@ function init(url = config.proxyUrl) {
     pendingMocks: api.pendingMocks.bind(api),
     matchHeader: api.matchHeader.bind(api),
     reset,
-    hasPendingCall
+    hasPendingCall,
   };
 }
 

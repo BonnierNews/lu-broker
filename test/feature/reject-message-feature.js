@@ -1,13 +1,13 @@
 "use strict";
 
 const sandbox = require("sinon").createSandbox();
-const {start, route, stop} = require("../..");
-const {crd, reject} = require("../helpers/queue-helper");
+const { start, route, stop } = require("../..");
+const { crd, reject } = require("../helpers/queue-helper");
 const jobStorage = require("../../lib/job-storage");
 const memoryJobStorage = require("../../lib/memory-job-storage");
 
 function rejectHandler(message, context) {
-  const {rejectUnless} = context;
+  const { rejectUnless } = context;
   rejectUnless(undefined, "dying hard!");
 }
 
@@ -20,8 +20,8 @@ Feature("Reject message", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "some-correlation-id"},
-    attributes: {baz: true}
+    meta: { correlationId: "some-correlation-id" },
+    attributes: { baz: true },
   };
   Scenario("Rejecting a message in a flow", () => {
     before(() => {
@@ -32,9 +32,9 @@ Feature("Reject message", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", rejectHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", rejectHandler) ],
+          },
+        ],
       });
     });
     let rejectedMessages;
@@ -69,14 +69,14 @@ Feature("Reject message", () => {
       rejectedMessages[0].meta.properties.headers.should.have.property("x-death");
     });
     And("the rejected message should have the expected x-death", () => {
-      const [xDeath] = rejectedMessages[0].meta.properties.headers["x-death"];
+      const [ xDeath ] = rejectedMessages[0].meta.properties.headers["x-death"];
       xDeath.should.eql({
         count: 1,
         exchange: "CRDExchangeTest",
         queue: "lu-broker-lambdas-test",
         reason: "rejected",
-        "routing-keys": ["event.some-name.perform.one"],
-        time: xDeath.time
+        "routing-keys": [ "event.some-name.perform.one" ],
+        time: xDeath.time,
       });
     });
     And("the rejected message should have x-routing-key set", () => {
@@ -95,15 +95,15 @@ Feature("Reject message", () => {
         triggers: {
           "trigger.some-name": () => {
             throw Error("got that wrong");
-          }
+          },
         },
         recipes: [
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", rejectHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", rejectHandler) ],
+          },
+        ],
       });
     });
     let rejectedMessages;
@@ -138,14 +138,14 @@ Feature("Reject message", () => {
       rejectedMessages[0].meta.properties.headers.should.have.property("x-death");
     });
     And("the rejected message should have the expected x-death", () => {
-      const [xDeath] = rejectedMessages[0].meta.properties.headers["x-death"];
+      const [ xDeath ] = rejectedMessages[0].meta.properties.headers["x-death"];
       xDeath.should.eql({
         count: 1,
         exchange: "CRDExchangeTest",
         queue: "lu-broker-triggers-test",
         reason: "rejected",
-        "routing-keys": ["trigger.some-name"],
-        time: xDeath.time
+        "routing-keys": [ "trigger.some-name" ],
+        time: xDeath.time,
       });
     });
     And("the rejected message should have x-routing-key set", () => {
@@ -163,7 +163,7 @@ Feature("Reject message", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        return {type: "baz", id: `my-guid-${i}`};
+        return { type: "baz", id: `my-guid-${i}` };
       };
     }
     function addWithTry(i, delay = 0) {
@@ -172,17 +172,15 @@ Feature("Reject message", () => {
         const newDelay = delay + tries;
         await sleep(newDelay);
         result.push(i);
-        return {type: "baz", id: `my-try-${newDelay}`};
+        return { type: "baz", id: `my-try-${newDelay}` };
       };
     }
     function triggerMultiple() {
       return {
         type: "trigger",
         id: "sub-sequence.some-sub-name",
-        source: [source],
-        meta: {
-          correlationId: "some-correlation-id"
-        }
+        source: [ source ],
+        meta: { correlationId: "some-correlation-id" },
       };
     }
 
@@ -200,15 +198,15 @@ Feature("Reject message", () => {
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", triggerMultiple),
-              route(".perform.two", addWithDelay(2, 1))
-            ]
+              route(".perform.two", addWithDelay(2, 1)),
+            ],
           },
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
-            sequence: [route(".perform.one", addWithTry(1, 5))]
-          }
-        ]
+            sequence: [ route(".perform.one", addWithTry(1, 5)) ],
+          },
+        ],
       });
     });
     let rejectedMessages;
@@ -230,10 +228,10 @@ Feature("Reject message", () => {
       await subFlowPromise;
       subFlowMessages.length.should.eql(2);
       subFlowMessages
-        .filter(({key}) => key === "sequence.some-sub-name.processed")
-        .map(({msg}) => msg.data)
+        .filter(({ key }) => key === "sequence.some-sub-name.processed")
+        .map(({ msg }) => msg.data)
         .forEach((data, idx) => {
-          data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
+          data.map(({ type, id }) => ({ type, id })).should.eql([ { type: "baz", id: `my-try-${idx * 10 + 15}` } ]); // not ok!
         });
     });
 
@@ -255,14 +253,14 @@ Feature("Reject message", () => {
       rejectedMessages[0].meta.properties.headers.should.have.property("x-death");
     });
     And("the rejected message should have the expected x-death", () => {
-      const [xDeath] = rejectedMessages[0].meta.properties.headers["x-death"];
+      const [ xDeath ] = rejectedMessages[0].meta.properties.headers["x-death"];
       xDeath.should.eql({
         count: 1,
         exchange: "CRDExchangeTest",
         queue: "lu-broker-internal-test",
         reason: "rejected",
-        "routing-keys": ["sub-sequence.some-sub-name.processed"],
-        time: xDeath.time
+        "routing-keys": [ "sub-sequence.some-sub-name.processed" ],
+        time: xDeath.time,
       });
     });
     And("the rejected message should have x-routing-key set", () => {
@@ -285,9 +283,9 @@ Feature("Reject message", () => {
           {
             namespace: "event",
             name: "some-name",
-            sequence: [route(".perform.one", rejectHandler)]
-          }
-        ]
+            sequence: [ route(".perform.one", rejectHandler) ],
+          },
+        ],
       });
     });
     let rejectedMessages;
@@ -302,14 +300,12 @@ Feature("Reject message", () => {
         {
           type: "event",
           data: [],
-          meta: {}
+          meta: {},
         },
         {
-          headers: {
-            ["x-count"]: 3
-          },
+          headers: { ["x-count"]: 3 },
           correlationId: "some-correlation-id",
-          replyTo: "event.some-name.perform.one.processed"
+          replyTo: "event.some-name.perform.one.processed",
         }
       );
     });
@@ -336,14 +332,14 @@ Feature("Reject message", () => {
       rejectedMessages[0].meta.properties.headers.should.have.property("x-death");
     });
     And("the rejected message should have the expected x-death", () => {
-      const [xDeath] = rejectedMessages[0].meta.properties.headers["x-death"];
+      const [ xDeath ] = rejectedMessages[0].meta.properties.headers["x-death"];
       xDeath.should.eql({
         count: 1,
         exchange: "CRDExchangeTest",
         queue: "lu-broker-lambdas-test",
         reason: "rejected",
-        "routing-keys": ["event.some-name.perform.one"],
-        time: xDeath.time
+        "routing-keys": [ "event.some-name.perform.one" ],
+        time: xDeath.time,
       });
     });
     And("the rejected message should have x-routing-key set", () => {
@@ -365,9 +361,9 @@ Feature("Reject message", () => {
 
   Scenario("Rejecting invalid messages", () => {
     const passThru = (msg) => msg;
-    const valid = () => Object({type: "other", id: "guid-2"});
-    const eventer = () => Object({type: "event", id: "guid"});
-    const invalid = () => Object({baz: "event", foo: "guid"});
+    const valid = () => Object({ type: "other", id: "guid-2" });
+    const eventer = () => Object({ type: "event", id: "guid" });
+    const invalid = () => Object({ baz: "event", foo: "guid" });
 
     before(() => {
       crd.resetMock();
@@ -377,19 +373,19 @@ Feature("Reject message", () => {
           {
             namespace: "event",
             name: "failer",
-            sequence: [route(".perform.valid", valid), route(".perform.one", passThru)]
+            sequence: [ route(".perform.valid", valid), route(".perform.one", passThru) ],
           },
           {
             namespace: "event",
             name: "failer2",
-            sequence: [route(".perform.one", eventer)]
+            sequence: [ route(".perform.one", eventer) ],
           },
           {
             namespace: "event",
             name: "failer3",
-            sequence: [route(".perform.one", invalid)]
-          }
-        ]
+            sequence: [ route(".perform.one", invalid) ],
+          },
+        ],
       });
     });
     let rejectedMessages;

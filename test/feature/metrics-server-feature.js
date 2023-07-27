@@ -1,14 +1,12 @@
 "use strict";
 const request = require("supertest")("http://localhost:3000");
-const {start, stop} = require("../..");
+const { start, stop } = require("../..");
 
 Feature("Metrics server", () => {
   afterEachScenario(stop);
   Scenario("Metrics are exposed", () => {
     Given("broker is started", () => {
-      start({
-        recipes: []
-      });
+      start({ recipes: [] });
     });
 
     let response;

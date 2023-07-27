@@ -20,6 +20,4 @@ chai.use(require("chai-uuid"));
 chai.config.truncateThreshold = 0;
 chai.config.includeStack = true;
 
-Object.assign(global, {
-  should: chai.should()
-});
+Object.assign(global, { should: chai.should() });

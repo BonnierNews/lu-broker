@@ -1,41 +1,39 @@
 "use strict";
 const request = require("../helpers/request-helper");
-const {start, route, stop} = require("../..");
-const {crd} = require("../helpers/queue-helper");
+const { start, route, stop } = require("../..");
+const { crd } = require("../helpers/queue-helper");
 
 function handler() {
-  return {type: "i-was-here", id: "my-guid"};
+  return { type: "i-was-here", id: "my-guid" };
 }
 
 Feature("Trigger via http", () => {
   const source = {
     type: "order",
     id: "some-id",
-    meta: {correlationId: "trigger-via-http-correlation-source"},
-    attributes: {baz: true}
+    meta: { correlationId: "trigger-via-http-correlation-source" },
+    attributes: { baz: true },
   };
   function trigger() {
     return {
       type: "trigger",
       id: "event.some-name",
       source,
-      correlationId: "some-other-trigger-via-http-correlation"
+      correlationId: "some-other-trigger-via-http-correlation",
     };
   }
 
   before(() => {
     crd.resetMock();
     start({
-      triggers: {
-        "trigger.some-generic-name": trigger
-      },
+      triggers: { "trigger.some-generic-name": trigger },
       recipes: [
         {
           namespace: "event",
           name: "some-name",
-          sequence: [route(".perform.one", handler)]
-        }
-      ]
+          sequence: [ route(".perform.one", handler) ],
+        },
+      ],
     });
   });
   after(stop);
@@ -57,7 +55,7 @@ Feature("Trigger via http", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -67,13 +65,11 @@ Feature("Trigger via http", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
-        source: {id: source.id, type: source.type, attributes: source.attributes, meta: source.meta},
-        meta: {
-          correlationId: "trigger-via-http-correlation"
-        }
+        source: { id: source.id, type: source.type, attributes: source.attributes, meta: source.meta },
+        meta: { correlationId: "trigger-via-http-correlation" },
       });
     });
   });
@@ -95,7 +91,7 @@ Feature("Trigger via http", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(2);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.should.eql({
         type: "event",
@@ -105,14 +101,14 @@ Feature("Trigger via http", () => {
             type: "i-was-here",
             id: "my-guid",
             occurredAt: msg.data[0].occurredAt,
-            key: "event.some-name.perform.one"
-          }
+            key: "event.some-name.perform.one",
+          },
         ],
         source,
         meta: {
           parentCorrelationId: "trigger-via-http-correlation",
-          correlationId: "some-other-trigger-via-http-correlation"
-        }
+          correlationId: "some-other-trigger-via-http-correlation",
+        },
       });
     });
   });
@@ -138,31 +134,23 @@ Feature("Trigger via http", () => {
           {
             title: "ValidationError in body",
             status: "validation_error",
-            source: {
-              pointer: "body[type]"
-            },
-            detail: "Missing required attribute 'type'"
+            source: { pointer: "body[type]" },
+            detail: "Missing required attribute 'type'",
           },
           {
             title: "ValidationError in body",
             status: "validation_error",
-            source: {
-              pointer: "body[id]"
-            },
-            detail: "Missing required attribute 'id'"
+            source: { pointer: "body[id]" },
+            detail: "Missing required attribute 'id'",
           },
           {
             title: "ValidationError in body",
             status: "validation_error",
-            source: {
-              pointer: "body[attributes]"
-            },
-            detail: "Missing required attribute 'attributes'"
-          }
+            source: { pointer: "body[attributes]" },
+            detail: "Missing required attribute 'attributes'",
+          },
         ],
-        meta: {
-          correlationId: "./test/feature/http-trigger-feature.js:128"
-        }
+        meta: { correlationId: "./test/feature/http-trigger-feature.js:124" },
       });
     });
 

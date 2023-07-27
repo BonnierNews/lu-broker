@@ -1,27 +1,25 @@
 "use strict";
 
-const {start, route, stop} = require("../..");
-const {crd} = require("../helpers/queue-helper");
-const {setupWaiter} = require("../helpers/internal-helpers");
+const { start, route, stop } = require("../..");
+const { crd } = require("../helpers/queue-helper");
+const { setupWaiter } = require("../helpers/internal-helpers");
 const jobStorage = require("../../lib/job-storage");
 
 const source = {
   type: "order",
   id: "some-id",
-  meta: {correlationId: "some-order-correlation-id"},
-  attributes: {baz: true}
+  meta: { correlationId: "some-order-correlation-id" },
+  attributes: { baz: true },
 };
 
-const source2 = {...source, meta: {correlationId: "some-other-order-correlation-id"}, id: "some-other-id"};
+const source2 = { ...source, meta: { correlationId: "some-other-order-correlation-id" }, id: "some-other-id" };
 
 function trigger() {
   return {
     type: "trigger",
     id: "sub-sequence.some-sub-name",
     source,
-    meta: {
-      correlationId: "some-correlation-id"
-    }
+    meta: { correlationId: "some-correlation-id" },
   };
 }
 
@@ -29,10 +27,8 @@ function triggerMultiple() {
   return {
     type: "trigger",
     id: "sub-sequence.some-sub-name",
-    source: [source, source2],
-    meta: {
-      correlationId: "some-correlation-id"
-    }
+    source: [ source, source2 ],
+    meta: { correlationId: "some-correlation-id" },
   };
 }
 
@@ -41,9 +37,7 @@ function subTrigger() {
     type: "trigger",
     id: "sub-sequence.grand-child",
     source,
-    meta: {
-      correlationId: "some-correlation-id"
-    }
+    meta: { correlationId: "some-correlation-id" },
   };
 }
 
@@ -63,7 +57,7 @@ Feature("Spawn flows with triggers", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        return {type: "baz", id: `my-guid-${i}`};
+        return { type: "baz", id: `my-guid-${i}` };
       };
     }
 
@@ -77,15 +71,15 @@ Feature("Spawn flows with triggers", () => {
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", trigger),
-              route(".perform.two", addWithDelay(2, 1))
-            ]
+              route(".perform.two", addWithDelay(2, 1)),
+            ],
           },
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
-            sequence: [route(".perform.one", addWithDelay(1, 5))]
-          }
-        ]
+            sequence: [ route(".perform.one", addWithDelay(1, 5)) ],
+          },
+        ],
       });
     });
 
@@ -103,28 +97,26 @@ Feature("Spawn flows with triggers", () => {
 
     Then("we should get a trigger message", () => {
       triggerMessages.should.have.length(1);
-      const {key, msg} = triggerMessages[0];
+      const { key, msg } = triggerMessages[0];
       key.should.eql("trigger.sub-sequence.some-sub-name");
-      msg.should.eql({
-        ...source
-      });
+      msg.should.eql({ ...source });
     });
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(4);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.data
-        .map(({type, id}) => ({type, id}))
+        .map(({ type, id }) => ({ type, id }))
         .should.eql([
-          {type: "baz", id: "my-guid-0"},
-          {type: "trigger", id: "sub-sequence.some-sub-name"},
-          {type: "baz", id: "my-guid-2"}
+          { type: "baz", id: "my-guid-0" },
+          { type: "trigger", id: "sub-sequence.some-sub-name" },
+          { type: "baz", id: "my-guid-2" },
         ]);
     });
 
     And("the handlers should have been triggered in correct order", () => {
-      result.should.eql([0, 1, 2]);
+      result.should.eql([ 0, 1, 2 ]);
     });
   });
 
@@ -135,7 +127,7 @@ Feature("Spawn flows with triggers", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        return {type: "baz", id: `my-guid-${i}`};
+        return { type: "baz", id: `my-guid-${i}` };
       };
     }
     function addWithTry(i, delay = 0) {
@@ -144,7 +136,7 @@ Feature("Spawn flows with triggers", () => {
         const newDelay = delay + tries;
         await sleep(newDelay);
         result.push(i);
-        return {type: "baz", id: `my-try-${newDelay}`};
+        return { type: "baz", id: `my-try-${newDelay}` };
       };
     }
 
@@ -158,15 +150,15 @@ Feature("Spawn flows with triggers", () => {
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", triggerMultiple),
-              route(".perform.two", addWithDelay(2, 1))
-            ]
+              route(".perform.two", addWithDelay(2, 1)),
+            ],
           },
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
-            sequence: [route(".perform.one", addWithTry(1, 5))]
-          }
-        ]
+            sequence: [ route(".perform.one", addWithTry(1, 5)) ],
+          },
+        ],
       });
     });
 
@@ -189,14 +181,10 @@ Feature("Spawn flows with triggers", () => {
 
     And("the last one should be the last source message", () => {
       triggerMessages
-        .map(({msg}) => msg)
+        .map(({ msg }) => msg)
         .should.eql([
-          {
-            ...source
-          },
-          {
-            ...source2
-          }
+          { ...source },
+          { ...source2 },
         ]);
     });
 
@@ -215,14 +203,14 @@ Feature("Spawn flows with triggers", () => {
 
     And("the parent flow should be completed", () => {
       flowMessages.length.should.eql(4);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.data
-        .map(({type, id, times}) => ({type, id, times}))
+        .map(({ type, id, times }) => ({ type, id, times }))
         .should.eql([
-          {type: "baz", id: "my-guid-0", times: undefined},
-          {type: "trigger", id: "sub-sequence.some-sub-name", times: 2},
-          {type: "baz", id: "my-guid-2", times: undefined}
+          { type: "baz", id: "my-guid-0", times: undefined },
+          { type: "trigger", id: "sub-sequence.some-sub-name", times: 2 },
+          { type: "baz", id: "my-guid-2", times: undefined },
         ]);
     });
 
@@ -230,15 +218,15 @@ Feature("Spawn flows with triggers", () => {
       await waitForProcessed;
       subFlowMessages.length.should.eql(4);
       subFlowMessages
-        .filter(({key}) => key === "sub-sequence.some-sub-name.processed")
-        .map(({msg}) => msg.data)
+        .filter(({ key }) => key === "sub-sequence.some-sub-name.processed")
+        .map(({ msg }) => msg.data)
         .forEach((data, idx) => {
-          data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
+          data.map(({ type, id }) => ({ type, id })).should.eql([ { type: "baz", id: `my-try-${idx * 10 + 15}` } ]); // not ok!
         });
     });
 
     And("the handlers should have been triggered in correct order", () => {
-      result.should.eql([0, 1, 1, 2]);
+      result.should.eql([ 0, 1, 1, 2 ]);
     });
   });
 
@@ -248,7 +236,7 @@ Feature("Spawn flows with triggers", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        return {type: "baz", id: `my-guid-${i}`};
+        return { type: "baz", id: `my-guid-${i}` };
       };
     }
 
@@ -262,20 +250,20 @@ Feature("Spawn flows with triggers", () => {
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", trigger),
-              route(".perform.two", addWithDelay(2, 1))
-            ]
+              route(".perform.two", addWithDelay(2, 1)),
+            ],
           },
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
-            sequence: [route(".perform.one", subTrigger), route(".perform.two", addWithDelay(3, 1))]
+            sequence: [ route(".perform.one", subTrigger), route(".perform.two", addWithDelay(3, 1)) ],
           },
           {
             namespace: "sub-sequence",
             name: "grand-child",
-            sequence: [route(".perform.one", addWithDelay(4, 2))]
-          }
-        ]
+            sequence: [ route(".perform.one", addWithDelay(4, 2)) ],
+          },
+        ],
       });
     });
 
@@ -292,27 +280,27 @@ Feature("Spawn flows with triggers", () => {
 
     And("the flow should be completed", () => {
       flowMessages.length.should.eql(4);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.data
-        .map(({type, id}) => ({type, id}))
+        .map(({ type, id }) => ({ type, id }))
         .should.eql([
-          {type: "baz", id: "my-guid-0"},
-          {type: "trigger", id: "sub-sequence.some-sub-name"},
-          {type: "baz", id: "my-guid-2"}
+          { type: "baz", id: "my-guid-0" },
+          { type: "trigger", id: "sub-sequence.some-sub-name" },
+          { type: "baz", id: "my-guid-2" },
         ]);
     });
 
     Then("the handlers should have been triggered in correct order", () => {
-      result.should.eql([0, 4, 3, 2]);
+      result.should.eql([ 0, 4, 3, 2 ]);
     });
   });
 
   Scenario("One child is unrecoverable", () => {
     const unrecoverable = [];
     function handleUnrecoverable(error, message, context) {
-      unrecoverable.push({error, message, routingKey: context.routingKey});
-      return {type: "some-type", id: "some-id"};
+      unrecoverable.push({ error, message, routingKey: context.routingKey });
+      return { type: "some-type", id: "some-id" };
     }
     const result = [];
     let tries = 0;
@@ -320,17 +308,17 @@ Feature("Spawn flows with triggers", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        return {type: "baz", id: `my-guid-${i}`};
+        return { type: "baz", id: `my-guid-${i}` };
       };
     }
     function addWithTry(i, delay = 0) {
-      return async (message, {unrecoverableIf}) => {
+      return async (message, { unrecoverableIf }) => {
         unrecoverableIf(message.meta.correlationId === "some-order-correlation-id:1", "this is a bad order");
         tries = tries + 10;
         const newDelay = delay + tries;
         await sleep(newDelay);
         result.push(i);
-        return {type: "baz", id: `my-try-${newDelay}`};
+        return { type: "baz", id: `my-try-${newDelay}` };
       };
     }
 
@@ -344,16 +332,16 @@ Feature("Spawn flows with triggers", () => {
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", triggerMultiple),
-              route(".perform.two", addWithDelay(2, 1))
-            ]
+              route(".perform.two", addWithDelay(2, 1)),
+            ],
           },
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
-            sequence: [route(".perform.one", addWithTry(1, 5))],
-            unrecoverable: [route("*", handleUnrecoverable)]
-          }
-        ]
+            sequence: [ route(".perform.one", addWithTry(1, 5)) ],
+            unrecoverable: [ route("*", handleUnrecoverable) ],
+          },
+        ],
       });
     });
 
@@ -376,14 +364,10 @@ Feature("Spawn flows with triggers", () => {
 
     And("the last one should be the last source message", () => {
       triggerMessages
-        .map(({msg}) => msg)
+        .map(({ msg }) => msg)
         .should.eql([
-          {
-            ...source
-          },
-          {
-            ...source2
-          }
+          { ...source },
+          { ...source2 },
         ]);
     });
 
@@ -402,14 +386,14 @@ Feature("Spawn flows with triggers", () => {
 
     And("the parent flow should be completed", () => {
       flowMessages.length.should.eql(4);
-      const {msg, key} = flowMessages.pop();
+      const { msg, key } = flowMessages.pop();
       key.should.eql("event.some-name.processed");
       msg.data
-        .map(({type, id, times}) => ({type, id, times}))
+        .map(({ type, id, times }) => ({ type, id, times }))
         .should.eql([
-          {type: "baz", id: "my-guid-0", times: undefined},
-          {type: "trigger", id: "sub-sequence.some-sub-name", times: 2},
-          {type: "baz", id: "my-guid-2", times: undefined}
+          { type: "baz", id: "my-guid-0", times: undefined },
+          { type: "trigger", id: "sub-sequence.some-sub-name", times: 2 },
+          { type: "baz", id: "my-guid-2", times: undefined },
         ]);
     });
 
@@ -417,15 +401,15 @@ Feature("Spawn flows with triggers", () => {
       await waitForProcessed;
       subFlowMessages.length.should.eql(4);
       subFlowMessages
-        .filter(({key}) => key === "sub-sequence.some-sub-name.processed")
-        .map(({msg}) => msg.data)
+        .filter(({ key }) => key === "sub-sequence.some-sub-name.processed")
+        .map(({ msg }) => msg.data)
         .forEach((data, idx) => {
-          data.map(({type, id}) => ({type, id})).should.eql([{type: "baz", id: `my-try-${idx * 10 + 15}`}]); // not ok!
+          data.map(({ type, id }) => ({ type, id })).should.eql([ { type: "baz", id: `my-try-${idx * 10 + 15}` } ]); // not ok!
         });
     });
 
     And("the handlers should have been triggered in correct order", () => {
-      result.should.eql([0, 1, 2]);
+      result.should.eql([ 0, 1, 2 ]);
     });
     And("one should have been handled by unrecoverable handler", () => {
       unrecoverable.length.should.eql(1);
@@ -438,7 +422,7 @@ Feature("Spawn flows with triggers", () => {
       return async () => {
         await sleep(delay);
         result.push(i);
-        return {type: "baz", id: `my-guid-${i}`};
+        return { type: "baz", id: `my-guid-${i}` };
       };
     }
     let concurrent = 0;
@@ -463,16 +447,16 @@ Feature("Spawn flows with triggers", () => {
             sequence: [
               route(".perform.first", addWithDelay(0, 1)),
               route(".perform.one", triggerMultiple),
-              route(".perform.two", addWithDelay(2, 1))
-            ]
+              route(".perform.two", addWithDelay(2, 1)),
+            ],
           },
           {
             namespace: "sub-sequence",
             name: "some-sub-name",
             executionDelay: 20,
-            sequence: [route(".perform.one", brittleFn)]
-          }
-        ]
+            sequence: [ route(".perform.one", brittleFn) ],
+          },
+        ],
       });
     });
 
@@ -489,11 +473,11 @@ Feature("Spawn flows with triggers", () => {
     And("the 2 child flows should be completed", async () => {
       await donePromise;
       subFlowMessages.length.should.eql(4);
-      subFlowMessages.filter(({key}) => key === "sub-sequence.some-sub-name.processed").length.should.eql(2);
+      subFlowMessages.filter(({ key }) => key === "sub-sequence.some-sub-name.processed").length.should.eql(2);
     });
 
     And("the handlers should have been triggered in correct order", () => {
-      result.should.eql([0, "some-id", "some-other-id", 2]);
+      result.should.eql([ 0, "some-id", "some-other-id", 2 ]);
     });
   });
 });

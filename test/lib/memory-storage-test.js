@@ -8,7 +8,7 @@ describe("memory storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context: { correlationId: "corrId", routingKey: "routingKey" },
     });
     parent.should.eql({
       childCount: 2,
@@ -16,7 +16,7 @@ describe("memory storage", () => {
       message: "msg",
       correlationId: "corrId",
       responseKey: "response",
-      children: parent.children
+      children: parent.children,
     });
   });
 
@@ -25,17 +25,17 @@ describe("memory storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 1,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context: { correlationId: "corrId", routingKey: "routingKey" },
     });
 
     const parent = storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:0"
-        }
+          correlationId: "corrId:0",
+        },
       },
-      {retryUnless: () => {}}
+      { retryUnless: () => {} }
     );
     parent.should.eql({
       childCount: 1,
@@ -44,7 +44,7 @@ describe("memory storage", () => {
       message: "msg",
       responseKey: "response",
       done: true,
-      children: parent.children
+      children: parent.children,
     });
   });
 
@@ -53,17 +53,17 @@ describe("memory storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context: { correlationId: "corrId", routingKey: "routingKey" },
     });
 
     let parent = storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:0"
-        }
+          correlationId: "corrId:0",
+        },
       },
-      {retryUnless: () => {}}
+      { retryUnless: () => {} }
     );
     parent.should.eql({
       childCount: 2,
@@ -72,17 +72,17 @@ describe("memory storage", () => {
       correlationId: "corrId",
       responseKey: "response",
       done: false,
-      children: parent.children
+      children: parent.children,
     });
 
     parent = storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:1"
-        }
+          correlationId: "corrId:1",
+        },
       },
-      {retryUnless: () => {}}
+      { retryUnless: () => {} }
     );
 
     parent.should.eql({
@@ -92,7 +92,7 @@ describe("memory storage", () => {
       correlationId: "corrId",
       responseKey: "response",
       done: true,
-      children: parent.children
+      children: parent.children,
     });
   });
 
@@ -101,17 +101,17 @@ describe("memory storage", () => {
       message: "msg",
       responseKey: "response",
       childCount: 2,
-      context: {correlationId: "corrId", routingKey: "routingKey"}
+      context: { correlationId: "corrId", routingKey: "routingKey" },
     });
 
     let parent = storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:1"
-        }
+          correlationId: "corrId:1",
+        },
       },
-      {retryUnless: () => {}}
+      { retryUnless: () => {} }
     );
     parent.should.eql({
       childCount: 2,
@@ -120,17 +120,17 @@ describe("memory storage", () => {
       correlationId: "corrId",
       responseKey: "response",
       done: false,
-      children: parent.children
+      children: parent.children,
     });
 
     parent = storage.storeChild(
       {
         meta: {
           notifyProcessed: "routingKey:corrId",
-          correlationId: "corrId:1"
-        }
+          correlationId: "corrId:1",
+        },
       },
-      {retryUnless: () => {}}
+      { retryUnless: () => {} }
     );
 
     parent.should.eql({
@@ -140,7 +140,7 @@ describe("memory storage", () => {
       correlationId: "corrId",
       responseKey: "response",
       done: false,
-      children: parent.children
+      children: parent.children,
     });
   });
 });

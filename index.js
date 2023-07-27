@@ -1,7 +1,7 @@
 "use strict";
 
 const config = require("exp-config");
-const {logger} = require("lu-logger");
+const { logger } = require("lu-logger");
 
 const {
   crd,
@@ -12,10 +12,10 @@ const {
   lambdasQueueName,
   triggersQueueName,
   rejectQueueName,
-  brokerBackend
+  brokerBackend,
 } = require("./lib/broker");
 const recipeRepo = require("./lib/recipe-repo");
-const {liveness} = require("./liveness");
+const { liveness } = require("./liveness");
 const buildFlowHandler = require("./lib/handle-flow-message");
 const buildTriggerHandler = require("./lib/handle-trigger-message");
 const buildWorkerHandler = require("./lib/handle-worker-message");
@@ -26,7 +26,7 @@ const publishCli = require("./publish-cli");
 const shutdownHandler = require("./lib/graceful-shutdown");
 let server;
 
-function start({recipes, triggers, useParentCorrelationId = false}) {
+function start({ recipes, triggers, useParentCorrelationId = false }) {
   logger.info(`Using ${brokerBackend} as lu-broker backend`);
   if (!config.disableGracefulShutdown) {
     shutdownHandler.init();
@@ -39,16 +39,16 @@ function start({recipes, triggers, useParentCorrelationId = false}) {
   const flowKeys = recipeMap.keys();
   const triggerKeys = recipeMap.triggerKeys();
 
-  for (const {key, queue} of recipeMap.workerQueues()) {
+  for (const { key, queue } of recipeMap.workerQueues()) {
     wq.subscribe(key, queue, buildWorkerHandler(queue, recipeMap));
   }
 
   crd.subscribe(flowKeys, lambdasQueueName, handleFlowMessage);
   crd.subscribe(triggerKeys, triggersQueueName, handleTriggerMessage);
-  reject.subscribe([...flowKeys, ...triggerKeys], rejectQueueName, handleRejectMessage);
+  reject.subscribe([ ...flowKeys, ...triggerKeys ], rejectQueueName, handleRejectMessage);
 
   internal.subscribe(
-    [...recipeMap.processedKeys(), ...recipeMap.processedUnrecoverableKeys()],
+    [ ...recipeMap.processedKeys(), ...recipeMap.processedUnrecoverableKeys() ],
     internalQueueName,
     handleInteralMessage
   );
@@ -75,5 +75,5 @@ module.exports = {
   buildContext: context,
   stop,
   publishCli,
-  testHelpers: brokerBackend === "fake-rabbitmq" ? require("./lib/test-helpers") : null
+  testHelpers: brokerBackend === "fake-rabbitmq" ? require("./lib/test-helpers") : null,
 };
