@@ -1,6 +1,6 @@
 {
   "name": "lu-broker",
-  "version": "8.3.2",
+  "version": "8.3.3",
   "engines": {
     "node": ">=16 <=18",
     "yarn": "please use npm"
