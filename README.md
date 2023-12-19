@@ -1,3 +1,5 @@
+As of 2023-12-15 this project is no longer used, and the repo has been archived.
+
 # lu-broker
 ![Node.js CI](https://github.com/BonnierNews/lu-broker/actions/workflows/nodejs.yml/badge.svg)
 
